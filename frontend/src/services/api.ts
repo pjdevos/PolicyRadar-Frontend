@@ -14,7 +14,8 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8001/ap
 class ApiClient {
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    retries: number = 3
   ): Promise<T> {
     const url = `${BASE_URL}${endpoint}`;
     
@@ -23,27 +24,42 @@ class ApiClient {
         'Content-Type': 'application/json',
         ...options.headers,
       },
+      timeout: 10000, // 10 second timeout
       ...options,
     };
 
-    try {
-      const response = await fetch(url, config);
-      
-      if (!response.ok) {
-        const error: APIError = await response.json().catch(() => ({
-          error: 'Network error',
-          message: `HTTP ${response.status}: ${response.statusText}`
-        }));
-        throw new Error(error.message || error.error);
-      }
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const response = await fetch(url, config);
+        
+        if (!response.ok) {
+          const error: APIError = await response.json().catch(() => ({
+            error: 'Network error',
+            message: `HTTP ${response.status}: ${response.statusText}`
+          }));
+          throw new Error(error.message || error.error);
+        }
 
-      return await response.json();
-    } catch (error) {
-      if (error instanceof Error) {
-        throw error;
+        return await response.json();
+      } catch (error) {
+        const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
+        const isLastAttempt = attempt === retries;
+        
+        if (isNetworkError && !isLastAttempt) {
+          console.warn(`Network error on attempt ${attempt + 1}, retrying...`);
+          // Exponential backoff: wait 1s, then 2s, then 4s
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+          continue;
+        }
+        
+        if (error instanceof Error) {
+          throw error;
+        }
+        throw new Error('An unexpected error occurred');
       }
-      throw new Error('An unexpected error occurred');
     }
+    
+    throw new Error('Max retries exceeded');
   }
 
   async getDocuments(filters: DocumentsFilters = {}): Promise<DocumentsResponse> {
