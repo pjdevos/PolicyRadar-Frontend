@@ -1,6 +1,22 @@
-# Getting Started with Create React App
+# Policy Radar Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React-based dashboard for Policy Radar platform.
+
+## Deploy to Railway
+
+1. Go to [Railway Dashboard](https://railway.app/dashboard)
+2. Click "New Project" → "Deploy from GitHub repo"
+3. Select `pjdevos/PolicyDashboard` repository
+4. Set root directory to `/frontend`
+5. Add environment variables:
+   ```
+   REACT_APP_API_BASE_URL=https://web-production-c466.up.railway.app/api
+   REACT_APP_APP_NAME=Policy Radar
+   REACT_APP_VERSION=1.0.0
+   REACT_APP_ENVIRONMENT=production
+   ```
+
+## Create React App
 
 ## Available Scripts
 
