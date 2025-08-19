@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, Calendar, Bell, ExternalLink, FileText, Users, Clock, ChevronDown, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Filter, Calendar, Bell, ExternalLink, FileText, Users, Clock, ChevronDown, AlertCircle, CheckCircle, XCircle, TrendingUp, BarChart3, Globe, Zap, ArrowRight, Sparkles, Activity } from 'lucide-react';
 import { apiClient } from './services/api';
 import { PolicyDocument, StatsResponse } from './types/api';
+import './PolicyRadar.css';
 
 const PolicyRadarDashboard = () => {
   const [selectedTopic, setSelectedTopic] = useState('all');
@@ -104,14 +105,14 @@ const PolicyRadarDashboard = () => {
     return documents.sort((a, b) => new Date(b.published).getTime() - new Date(a.published).getTime());
   }, [documents]);
 
-  // Source badge styling - Fixed parameter typing
+  // Source badge styling - Enhanced with gradients
   const getSourceBadge = (source: string) => {
     const styles: { [key: string]: string } = {
-      'EUR-Lex': 'bg-blue-100 text-blue-800 border-blue-200',
-      'EP Open Data': 'bg-green-100 text-green-800 border-green-200',
-      'EURACTIV': 'bg-orange-100 text-orange-800 border-orange-200'
+      'EUR-Lex': 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border-blue-300 hover:from-blue-200 hover:to-blue-300',
+      'EP Open Data': 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800 border-green-300 hover:from-green-200 hover:to-emerald-300',
+      'EURACTIV': 'bg-gradient-to-r from-orange-100 to-amber-200 text-orange-800 border-orange-300 hover:from-orange-200 hover:to-amber-300'
     };
-    return styles[source] || 'bg-gray-100 text-gray-800 border-gray-200';
+    return styles[source] || 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border-gray-300';
   };
 
   // Document type icons - Fixed parameter typing
@@ -125,19 +126,41 @@ const PolicyRadarDashboard = () => {
     }
   };
 
-  // Status indicator for procedures - Fixed parameter typing
+  // Status indicator for procedures - Enhanced with icons and better styling
   const getStatusIndicator = (item: any) => {
     if (item.extra?.stage) {
-      const statusColors: { [key: string]: string } = {
-        'First reading': 'text-blue-600',
-        'Second reading': 'text-yellow-600', 
-        'Adopted': 'text-green-600',
-        'Rejected': 'text-red-600'
+      const statusConfig: { [key: string]: { color: string; bgColor: string; icon: React.ReactNode } } = {
+        'First reading': { 
+          color: 'text-blue-700', 
+          bgColor: 'bg-blue-100 border-blue-200', 
+          icon: <Clock className="w-3 h-3" /> 
+        },
+        'Second reading': { 
+          color: 'text-amber-700', 
+          bgColor: 'bg-amber-100 border-amber-200', 
+          icon: <Zap className="w-3 h-3" /> 
+        },
+        'Adopted': { 
+          color: 'text-green-700', 
+          bgColor: 'bg-green-100 border-green-200', 
+          icon: <CheckCircle className="w-3 h-3" /> 
+        },
+        'Rejected': { 
+          color: 'text-red-700', 
+          bgColor: 'bg-red-100 border-red-200', 
+          icon: <XCircle className="w-3 h-3" /> 
+        }
+      };
+      const config = statusConfig[item.extra.stage] || { 
+        color: 'text-gray-700', 
+        bgColor: 'bg-gray-100 border-gray-200', 
+        icon: <Clock className="w-3 h-3" /> 
       };
       return (
-        <span className={`text-xs font-medium ${statusColors[item.extra.stage] || 'text-gray-600'}`}>
-          {item.extra.stage}
-        </span>
+        <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-semibold border ${config.bgColor} ${config.color}`}>
+          {config.icon}
+          <span>{item.extra.stage}</span>
+        </div>
       );
     }
     return null;
@@ -165,188 +188,271 @@ const PolicyRadarDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-200/60 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">Policy Radar</h1>
-              <span className="ml-3 text-sm text-gray-500">Brussels Public Affairs Platform</span>
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg shadow-sm">
+                <Globe className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Policy Radar</h1>
+                <span className="text-xs text-gray-500 font-medium">Brussels Public Affairs Platform</span>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-500">
-                Last update: {lastUpdate.toLocaleTimeString()}
+              <div className="flex items-center space-x-2 px-3 py-1.5 bg-green-50 rounded-full border border-green-200">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-green-700 font-medium">
+                  Updated {lastUpdate.toLocaleTimeString()}
+                </span>
               </div>
-              <Bell className="w-5 h-5 text-gray-400" />
+              <div className="relative">
+                <Bell className="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                  <span className="text-[10px] text-white font-bold">3</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6 lg:space-y-8">
             
             {/* Search and Filters */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="space-y-4">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+              <div className="space-y-6">
                 {/* Search Bar */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <div className="relative group">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
                   <input
                     type="text"
                     placeholder="Search policies, regulations, news..."
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50/80 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200 text-gray-900 placeholder-gray-500"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
+                  {searchQuery && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <Sparkles className="w-4 h-4 text-blue-500" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Filter Toggle */}
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+                  className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-all duration-200 group"
                 >
-                  <Filter className="w-4 h-4" />
-                  <span>Filters</span>
-                  <ChevronDown className={`w-4 h-4 transform transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                  <Filter className="w-4 h-4 group-hover:text-blue-500 transition-colors" />
+                  <span className="font-medium">Advanced Filters</span>
+                  <ChevronDown className={`w-4 h-4 transform transition-all duration-200 ${showFilters ? 'rotate-180 text-blue-500' : ''}`} />
                 </button>
 
                 {/* Filters */}
                 {showFilters && (
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t">
-                    <select
-                      value={selectedTopic}
-                      onChange={(e) => setSelectedTopic(e.target.value)}
-                      className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="all">All Topics</option>
-                      {allTopics.map(topic => (
-                        <option key={topic} value={topic}>{topic}</option>
-                      ))}
-                    </select>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-6 border-t border-gray-100 animate-in slide-in-from-top-5 duration-300">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Topic</label>
+                      <select
+                        value={selectedTopic}
+                        onChange={(e) => setSelectedTopic(e.target.value)}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      >
+                        <option value="all">All Topics</option>
+                        {allTopics.map(topic => (
+                          <option key={topic} value={topic}>{topic}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                    <select
-                      value={selectedSource}
-                      onChange={(e) => setSelectedSource(e.target.value)}
-                      className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="all">All Sources</option>
-                      {allSources.map(source => (
-                        <option key={source} value={source}>{source}</option>
-                      ))}
-                    </select>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Source</label>
+                      <select
+                        value={selectedSource}
+                        onChange={(e) => setSelectedSource(e.target.value)}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      >
+                        <option value="all">All Sources</option>
+                        {allSources.map(source => (
+                          <option key={source} value={source}>{source}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                    <select
-                      value={selectedDocType}
-                      onChange={(e) => setSelectedDocType(e.target.value)}
-                      className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="all">All Types</option>
-                      {allDocTypes.map(type => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Type</label>
+                      <select
+                        value={selectedDocType}
+                        onChange={(e) => setSelectedDocType(e.target.value)}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      >
+                        <option value="all">All Types</option>
+                        {allDocTypes.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                    <select
-                      value={dateRange}
-                      onChange={(e) => setDateRange(e.target.value)}
-                      className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="7">Last 7 days</option>
-                      <option value="30">Last 30 days</option>
-                      <option value="90">Last 3 months</option>
-                      <option value="365">Last year</option>
-                    </select>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Date Range</label>
+                      <select
+                        value={dateRange}
+                        onChange={(e) => setDateRange(e.target.value)}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      >
+                        <option value="7">Last 7 days</option>
+                        <option value="30">Last 30 days</option>
+                        <option value="90">Last 3 months</option>
+                        <option value="365">Last year</option>
+                      </select>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Results Summary */}
-            <div className="bg-white rounded-lg shadow-sm p-4">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Policy Activity Timeline
-                </h3>
-                <span className="text-sm text-gray-500">
-                  {documentsLoading ? 'Loading...' : `${filteredData.length} items found`}
-                </span>
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg">
+                    <BarChart3 className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      Policy Activity Timeline
+                    </h3>
+                    <p className="text-sm text-gray-500">Live policy tracking and analysis</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  {documentsLoading ? (
+                    <div className="flex items-center space-x-2 text-blue-600">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                      <span className="text-sm font-medium">Loading...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2 px-3 py-1.5 bg-blue-50 rounded-full border border-blue-200">
+                      <TrendingUp className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-semibold text-blue-700">
+                        {filteredData.length} items found
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
               {error && (
-                <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                   <div className="flex items-center">
-                    <AlertCircle className="w-4 h-4 text-red-500 mr-2" />
-                    <span className="text-sm text-red-700">{error}</span>
+                    <AlertCircle className="w-5 h-5 text-red-500 mr-3" />
+                    <div>
+                      <span className="text-sm font-medium text-red-800">Error loading data</span>
+                      <p className="text-sm text-red-700 mt-1">{error}</p>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Activity Feed */}
-            <div className="space-y-4">
+            <div className="space-y-4 lg:space-y-6">
               {documentsLoading ? (
-                <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading documents...</p>
+                <div className="space-y-4">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-4 lg:p-6 animate-pulse">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-3">
+                            <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+                            <div className="h-4 bg-gray-200 rounded w-16"></div>
+                          </div>
+                          <div className="h-6 bg-gray-200 rounded w-full sm:w-3/4 mb-3"></div>
+                          <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                          <div className="h-4 bg-gray-200 rounded w-full sm:w-2/3"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : filteredData.map((item, index) => (
-                <div key={item.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
-                  <div className="p-6">
+                <div key={item.id} className="group bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 hover:shadow-xl hover:border-white/40 transition-all duration-300 hover:-translate-y-1">
+                  <div className="p-4 sm:p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getSourceBadge(item.source)}`}>
-                            {item.source}
-                          </span>
-                          <div className="flex items-center space-x-1 text-gray-500">
-                            {getDocTypeIcon(item.doc_type)}
-                            <span className="text-xs font-medium capitalize">{item.doc_type}</span>
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-4">
+                          <div className="flex items-center space-x-2">
+                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border-2 shadow-sm ${getSourceBadge(item.source)}`}>
+                              {item.source}
+                            </span>
+                            <div className="flex items-center space-x-2 px-2 py-1 bg-gray-100 rounded-lg">
+                              {getDocTypeIcon(item.doc_type)}
+                              <span className="text-xs font-semibold capitalize text-gray-700">{item.doc_type}</span>
+                            </div>
                           </div>
                           {getStatusIndicator(item)}
                         </div>
                         
-                        <h3 className="text-lg font-medium text-gray-900 mb-2 hover:text-blue-600">
-                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1">
-                            <span>{item.title}</span>
-                            <ExternalLink className="w-4 h-4" />
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-200 leading-tight">
+                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-start space-x-2 group/link">
+                            <span className="flex-1">{item.title}</span>
+                            <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover/link:text-blue-500 transition-colors flex-shrink-0 mt-1" />
                           </a>
                         </h3>
                         
                         {item.summary && (
-                          <p className="text-gray-600 mb-3 leading-relaxed">
+                          <p className="text-gray-600 mb-4 leading-relaxed text-sm">
                             {item.summary}
                           </p>
                         )}
 
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            <div className="flex items-center space-x-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 pt-4 border-t border-gray-100">
+                          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm text-gray-500">
+                            <div className="flex items-center space-x-1.5">
                               <Clock className="w-4 h-4" />
-                              <span>{new Date(item.published).toLocaleDateString()}</span>
+                              <span className="font-medium">{new Date(item.published).toLocaleDateString()}</span>
                             </div>
                             {item.extra?.committees && (
-                              <div className="flex items-center space-x-1">
+                              <div className="flex items-center space-x-1.5">
                                 <Users className="w-4 h-4" />
-                                <span>{item.extra.committees.join(', ')}</span>
+                                <span className="font-medium">{item.extra.committees.slice(0, 2).join(', ')}</span>
                               </div>
                             )}
                           </div>
                           
-                          <div className="flex flex-wrap gap-1">
+                          <div className="flex flex-wrap gap-2">
                             {item.topics.slice(0, 3).map(topic => (
-                              <span key={topic} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                              <span key={topic} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-200 hover:from-blue-100 hover:to-indigo-100 transition-colors cursor-pointer">
                                 {topic}
                               </span>
                             ))}
                             {item.topics.length > 3 && (
-                              <span className="text-xs text-gray-500">+{item.topics.length - 3} more</span>
+                              <span className="text-xs text-gray-500 font-medium">+{item.topics.length - 3} more</span>
                             )}
                           </div>
                         </div>
+                        
+                        {/* Progress indicator for procedures */}
+                        {item.doc_type === 'procedure' && (
+                          <div className="mt-4 pt-4 border-t border-gray-100">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-medium text-gray-600">Legislative Progress</span>
+                              <span className="text-xs font-semibold text-blue-600">{item.extra?.stage || 'In Progress'}</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-500" 
+                                   style={{width: item.extra?.stage === 'First reading' ? '33%' : item.extra?.stage === 'Second reading' ? '66%' : item.extra?.stage === 'Adopted' ? '100%' : '20%'}}>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -355,55 +461,90 @@ const PolicyRadarDashboard = () => {
             </div>
 
             {!documentsLoading && filteredData.length === 0 && (
-              <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
-                <p className="text-gray-600">Try adjusting your search terms or filters</p>
+              <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-12 text-center">
+                <div className="max-w-sm mx-auto">
+                  <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <AlertCircle className="w-10 h-10 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">No documents found</h3>
+                  <p className="text-gray-600 mb-6 leading-relaxed">We couldn't find any documents matching your current filters. Try adjusting your search terms or expanding your date range.</p>
+                  <button 
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedTopic('all');
+                      setSelectedSource('all');
+                      setSelectedDocType('all');
+                    }}
+                    className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    <ArrowRight className="w-4 h-4 mr-2" />
+                    Clear all filters
+                  </button>
+                </div>
               </div>
             )}
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:space-y-8">
             
             {/* AI Chat Interface */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Ask Policy Radar</h3>
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg shadow-sm">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Ask Policy Radar</h3>
+                  <p className="text-xs text-gray-500">AI-powered policy insights</p>
+                </div>
+              </div>
               
               <div className="space-y-4">
-                <textarea
-                  value={chatQuery}
-                  onChange={(e) => setChatQuery(e.target.value)}
-                  placeholder="Ask about policies, regulations, or trends..."
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  rows={3}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                      e.preventDefault();
-                      handleChatSubmit();
-                    }
-                  }}
-                />
+                <div className="relative">
+                  <textarea
+                    value={chatQuery}
+                    onChange={(e) => setChatQuery(e.target.value)}
+                    placeholder="Ask about policies, regulations, or trends..."
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none bg-gray-50/80 focus:bg-white transition-all duration-200"
+                    rows={3}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        handleChatSubmit();
+                      }
+                    }}
+                  />
+                  <div className="absolute bottom-3 right-3 text-xs text-gray-400">
+                    Ctrl+Enter to send
+                  </div>
+                </div>
                 <button
                   onClick={handleChatSubmit}
                   disabled={isLoading || !chatQuery.trim()}
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 px-4 rounded-xl hover:from-blue-600 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 font-medium shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   {isLoading ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
                       <span>Processing...</span>
                     </>
                   ) : (
-                    <span>Ask Question</span>
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Ask Question</span>
+                    </>
                   )}
                 </button>
               </div>
 
               {chatResponse && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium text-gray-900 mb-2">Response:</h4>
-                  <div className="text-sm text-gray-700 whitespace-pre-line">
+                <div className="mt-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Sparkles className="w-4 h-4 text-blue-600" />
+                    <h4 className="font-semibold text-blue-900">AI Response:</h4>
+                  </div>
+                  <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                     {chatResponse}
                   </div>
                 </div>
@@ -411,52 +552,94 @@ const PolicyRadarDashboard = () => {
             </div>
 
             {/* Quick Stats */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Stats</h3>
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg shadow-sm">
+                  <BarChart3 className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Quick Stats</h3>
+                  <p className="text-xs text-gray-500">Real-time metrics</p>
+                </div>
+              </div>
               {statsLoading ? (
-                <div className="space-y-3">
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded"></div>
-                  </div>
+                <div className="space-y-4">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      <div className="h-6 bg-gray-200 rounded w-8"></div>
+                    </div>
+                  ))}
                 </div>
               ) : stats ? (
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Total Documents</span>
-                    <span className="font-medium">{stats.total_documents}</span>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                    <span className="text-blue-700 font-medium">Total Documents</span>
+                    <span className="text-xl font-bold text-blue-800">{stats.total_documents}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Active Procedures</span>
-                    <span className="font-medium">{stats.active_procedures}</span>
+                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
+                    <span className="text-green-700 font-medium">Active Procedures</span>
+                    <span className="text-xl font-bold text-green-800">{stats.active_procedures}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">This Week</span>
-                    <span className="font-medium">{stats.this_week}</span>
+                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border border-purple-200">
+                    <span className="text-purple-700 font-medium">This Week</span>
+                    <span className="text-xl font-bold text-purple-800">{stats.this_week}</span>
                   </div>
                 </div>
               ) : (
-                <div className="text-gray-500 text-sm">Failed to load stats</div>
+                <div className="text-center p-6">
+                  <AlertCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <div className="text-gray-500 text-sm">Failed to load stats</div>
+                </div>
               )}
             </div>
 
             {/* Top Topics */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Trending Topics</h3>
-              <div className="space-y-2">
-                {allTopics.slice(0, 8).map(topic => {
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg shadow-sm">
+                  <TrendingUp className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Trending Topics</h3>
+                  <p className="text-xs text-gray-500">Most active policy areas</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {allTopics.slice(0, 8).map((topic, index) => {
                   const count = documents.filter(item => 
                     item.topics.includes(topic)
                   ).length;
+                  const isSelected = selectedTopic === topic;
                   return (
                     <button
                       key={topic}
                       onClick={() => setSelectedTopic(topic)}
-                      className="w-full flex justify-between items-center text-left p-2 hover:bg-gray-50 rounded"
+                      className={`w-full flex justify-between items-center text-left p-3 rounded-lg transition-all duration-200 group ${
+                        isSelected 
+                          ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg' 
+                          : 'hover:bg-gray-50 hover:shadow-sm'
+                      }`}
                     >
-                      <span className="text-sm text-gray-700">{topic}</span>
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                          isSelected 
+                            ? 'bg-white/20 text-white' 
+                            : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600'
+                        }`}>
+                          #{index + 1}
+                        </div>
+                        <span className={`text-sm font-medium ${
+                          isSelected ? 'text-white' : 'text-gray-700'
+                        }`}>
+                          {topic}
+                        </span>
+                      </div>
+                      <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
+                        isSelected 
+                          ? 'bg-white/20 text-white' 
+                          : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'
+                      }`}>
                         {count}
                       </span>
                     </button>

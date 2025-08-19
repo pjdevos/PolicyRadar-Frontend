@@ -449,12 +449,14 @@ async def get_sources():
         "total_sources": len(source_counts)
     }
 
-# Development server
+# Development and production server
 if __name__ == "__main__":
+    import os
+    port = int(os.getenv("PORT", 8000))
     uvicorn.run(
         "api_server:app",
         host="0.0.0.0",
-        port=8000,
-        reload=True,
+        port=port,  # Use Railway's PORT
+        reload=False,  # Disable reload in production
         log_level="info"
     )
