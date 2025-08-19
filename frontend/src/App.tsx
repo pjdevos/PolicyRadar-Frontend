@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, Calendar, Bell, ExternalLink, FileText, Users, Clock, ChevronDown, AlertCircle, CheckCircle, XCircle, TrendingUp, BarChart3, Globe, Zap, ArrowRight, Sparkles, Activity } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Search, Filter, Calendar, Bell, ExternalLink, FileText, Users, Clock, ChevronDown, AlertCircle, CheckCircle, XCircle, TrendingUp, BarChart3, Globe, Zap, ArrowRight, Sparkles } from 'lucide-react';
 import { apiClient } from './services/api';
 import { PolicyDocument, StatsResponse } from './types/api';
 import './PolicyRadar.css';
 
 const PolicyRadarDashboard = () => {
-  const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8001/api';
   
   const [selectedTopic, setSelectedTopic] = useState('all');
   const [selectedSource, setSelectedSource] = useState('all');
@@ -30,27 +29,7 @@ const PolicyRadarDashboard = () => {
   // Real-time updates
   const [lastUpdate, setLastUpdate] = useState(new Date());
   
-  // Load initial data
-  useEffect(() => {
-    loadDocuments();
-    loadStats();
-    loadFilterOptions();
-    
-    const interval = setInterval(() => {
-      setLastUpdate(new Date());
-      loadDocuments();
-      loadStats();
-    }, 60000);
-    
-    return () => clearInterval(interval);
-  }, []);
-  
-  // Reload documents when filters change
-  useEffect(() => {
-    loadDocuments();
-  }, [selectedTopic, selectedSource, selectedDocType, dateRange, searchQuery]);
-  
-  const loadDocuments = async () => {
+  const loadDocuments = useCallback(async () => {
     try {
       setDocumentsLoading(true);
       setError(null);
@@ -70,9 +49,9 @@ const PolicyRadarDashboard = () => {
     } finally {
       setDocumentsLoading(false);
     }
-  };
+  }, [selectedTopic, selectedSource, selectedDocType, dateRange, searchQuery]);
   
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       setStatsLoading(true);
       const response = await apiClient.getStats();
@@ -82,9 +61,9 @@ const PolicyRadarDashboard = () => {
     } finally {
       setStatsLoading(false);
     }
-  };
+  }, []);
   
-  const loadFilterOptions = async () => {
+  const loadFilterOptions = useCallback(async () => {
     try {
       const [topicsResponse, sourcesResponse] = await Promise.all([
         apiClient.getTopics(),
@@ -101,7 +80,27 @@ const PolicyRadarDashboard = () => {
     } catch (err) {
       console.error('Failed to load filter options:', err);
     }
-  };
+  }, [documents]);
+
+  // Load initial data
+  useEffect(() => {
+    loadDocuments();
+    loadStats();
+    loadFilterOptions();
+    
+    const interval = setInterval(() => {
+      setLastUpdate(new Date());
+      loadDocuments();
+      loadStats();
+    }, 60000);
+    
+    return () => clearInterval(interval);
+  }, [loadDocuments, loadStats, loadFilterOptions]);
+  
+  // Reload documents when filters change
+  useEffect(() => {
+    loadDocuments();
+  }, [selectedTopic, selectedSource, selectedDocType, dateRange, searchQuery, loadDocuments]);
 
   // Filtered data is now handled by API, so we use documents directly
   const filteredData = useMemo(() => {
