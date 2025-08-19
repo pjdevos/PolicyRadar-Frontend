@@ -88,8 +88,7 @@ def fetch_euractiv_rss(feed_url: str, since_days: int = 30, topic_filter: Option
         print(f"[EURACTIV] Found {len(d.entries)} entries")
         
         items: List[DocItem] = []
-        from datetime import timezone
-        cutoff = dt.datetime.now(timezone.utc) - dt.timedelta(days=since_days)
+        cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=since_days)
 
         for e in d.entries:
             # Parse publication date
@@ -453,8 +452,7 @@ def test_ep_endpoints():
 
 def get_date_cutoff(days_back):
     """Use timezone-aware datetime"""
-    from datetime import timezone
-    return dt.datetime.now(timezone.utc) - dt.timedelta(days=days_back)
+    return dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=days_back)
 
 # -----------------------------
 # Normalize + Write
