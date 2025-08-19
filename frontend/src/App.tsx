@@ -5,6 +5,8 @@ import { PolicyDocument, StatsResponse } from './types/api';
 import './PolicyRadar.css';
 
 const PolicyRadarDashboard = () => {
+  const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8001/api';
+  
   const [selectedTopic, setSelectedTopic] = useState('all');
   const [selectedSource, setSelectedSource] = useState('all');
   const [selectedDocType, setSelectedDocType] = useState('all');
@@ -63,6 +65,7 @@ const PolicyRadarDashboard = () => {
       
       setDocuments(response.documents);
     } catch (err) {
+      console.error('API error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load documents');
     } finally {
       setDocumentsLoading(false);
