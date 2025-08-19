@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Filter, Calendar, Bell, ExternalLink, FileText, Users, Clock, ChevronDown, AlertCircle, CheckCircle, XCircle, TrendingUp, BarChart3, Globe, Zap, ArrowRight, Sparkles } from 'lucide-react';
+import { Search, Filter, Calendar, Bell, ExternalLink, FileText, Users, Clock, ChevronDown, AlertCircle, CheckCircle, XCircle, TrendingUp, BarChart3, Zap, ArrowRight, Sparkles } from 'lucide-react';
 import { apiClient } from './services/api';
 import { PolicyDocument, StatsResponse } from './types/api';
+import RadarLogo from './components/RadarLogo';
 import './PolicyRadar.css';
 
 const PolicyRadarDashboard = () => {
@@ -197,7 +198,12 @@ const PolicyRadarDashboard = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg shadow-sm">
-                <Globe className="w-6 h-6 text-white" />
+                <RadarLogo 
+                  size={24} 
+                  animationType="pulse" 
+                  color="white" 
+                  showPulseRings={false}
+                />
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Policy Radar</h1>
@@ -326,7 +332,12 @@ const PolicyRadarDashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg">
-                    <BarChart3 className="w-5 h-5 text-white" />
+                    <RadarLogo 
+                      size={20} 
+                      animationType="ping" 
+                      color="white" 
+                      showPulseRings={true}
+                    />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900">
