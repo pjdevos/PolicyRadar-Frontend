@@ -2,6 +2,8 @@
 
 React-based dashboard for Policy Radar platform.
 
+Updated: 2025-08-19
+
 ## Deploy to Railway
 
 1. Go to [Railway Dashboard](https://railway.app/dashboard)
