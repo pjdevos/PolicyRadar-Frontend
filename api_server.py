@@ -28,9 +28,16 @@ try:
     from vector_indexer import PolicyVectorStore
     from rag_service import PolicyRAGService
     import subprocess
+    VECTOR_SEARCH_AVAILABLE = True
 except ImportError as e:
     print(f"Warning: Could not import modules: {e}")
     print("Make sure vector_indexer.py and rag_service.py are in the same directory")
+    VECTOR_SEARCH_AVAILABLE = False
+    # Define dummy classes for deployment
+    class PolicyVectorStore:
+        pass
+    class PolicyRAGService:
+        pass
 
 # Configuration
 DATA_DIR = Path("./data")
