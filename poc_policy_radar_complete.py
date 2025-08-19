@@ -66,47 +66,71 @@ def ensure_outdir(path: str) -> None:
 # -----------------------------
 
 def fetch_euractiv_rss(feed_url: str, since_days: int = 30, topic_filter: Optional[str] = None) -> List[DocItem]:
-    """Fetch EURACTIV RSS and map to DocItem."""
-    print(f"[EURACTIV] Pulling RSS: {feed_url}")
-    d = feedparser.parse(feed_url)
-    items: List[DocItem] = []
-    cutoff = dt.datetime.utcnow() - dt.timedelta(days=since_days)
+    """Enhanced EURACTIV RSS fetching with better error handling"""
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+        'Accept-Language': 'en-US,en;q=0.9'
+    }
+    
+    try:
+        print(f"[EURACTIV] Pulling RSS: {feed_url}")
+        response = requests.get(feed_url, headers=headers, timeout=30)
+        response.raise_for_status()
+        
+        # Parse with feedparser
+        d = feedparser.parse(response.content)
+        
+        if not d.entries:
+            print(f"[EURACTIV] No entries found in feed: {feed_url}")
+            return []
+            
+        print(f"[EURACTIV] Found {len(d.entries)} entries")
+        
+        items: List[DocItem] = []
+        from datetime import timezone
+        cutoff = dt.datetime.now(timezone.utc) - dt.timedelta(days=since_days)
 
-    for e in d.entries:
-        # Try parse published date
-        pub = None
-        if getattr(e, "published_parsed", None):
-            pub = dt.datetime.fromtimestamp(time.mktime(e.published_parsed))
-        elif getattr(e, "updated_parsed", None):
-            pub = dt.datetime.fromtimestamp(time.mktime(e.updated_parsed))
+        for e in d.entries:
+            # Parse publication date
+            pub = None
+            if hasattr(e, 'published_parsed') and e.published_parsed:
+                pub = dt.datetime(*e.published_parsed[:6])
+            elif hasattr(e, 'updated_parsed') and e.updated_parsed:
+                pub = dt.datetime(*e.updated_parsed[:6])
 
-        if pub and pub < cutoff:
-            continue
+            # Skip if too old
+            if pub and pub < cutoff:
+                continue
 
-        title = getattr(e, "title", "").strip()
-        summary = getattr(e, "summary", None)
-        link = getattr(e, "link", "")
-        lang = getattr(e, "language", None) or getattr(d.feed, "language", None)
+            title = getattr(e, "title", "").strip()
+            summary = getattr(e, "summary", None)
+            link = getattr(e, "link", "")
+            lang = getattr(e, "language", None) or getattr(d.feed, "language", None)
 
-        blob = (title + " " + (summary or "")).lower()
-        if topic_filter and topic_filter.lower() not in blob:
-            continue
+            blob = (title + " " + (summary or "")).lower()
+            if topic_filter and topic_filter.lower() not in blob:
+                continue
 
-        items.append(DocItem(
-            source="EURACTIV",
-            doc_type="news",
-            id=sha1(link or title),
-            title=title,
-            summary=summary,
-            body_text=None,
-            language=lang,
-            url=link,
-            published=iso(pub) if pub else None,
-            topics=[topic_filter] if topic_filter else [],
-            extra={"rss_link": link}
-        ))
-    print(f"[EURACTIV] Collected {len(items)} items")
-    return items
+            items.append(DocItem(
+                source="EURACTIV",
+                doc_type="news",
+                id=sha1(link or title),
+                title=title,
+                summary=summary,
+                body_text=None,
+                language=lang,
+                url=link,
+                published=iso(pub) if pub else None,
+                topics=[topic_filter] if topic_filter else [],
+                extra={"rss_link": link}
+            ))
+        print(f"[EURACTIV] Collected {len(items)} items")
+        return items
+        
+    except Exception as e:
+        print(f"[EURACTIV] Error fetching {feed_url}: {e}")
+        return []
 
 # -----------------------------
 # EUR‑Lex SPARQL
@@ -182,7 +206,9 @@ class EPConnector:
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': UA,
-            'Accept': 'application/json'
+            'Accept': 'application/ld+json',
+            'Accept-Language': 'en,fr;q=0.9',
+            'Accept-Encoding': 'gzip, deflate'
         })
         
     def _make_request(self, endpoint: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -210,8 +236,7 @@ class EPConnector:
         params = {
             'q': search_query,
             'limit': limit,
-            'sort': '-created_date',
-            'format': 'json'
+            'sort': '-created_date'
         }
         
         print(f"[EP] Fetching procedures for: {search_query}")
@@ -281,8 +306,7 @@ class EPConnector:
         params = {
             'q': search_query,
             'limit': limit,
-            'sort': '-date',
-            'format': 'json'
+            'sort': '-date'
         }
         
         print(f"[EP] Fetching documents for: {search_query}")
@@ -346,6 +370,91 @@ def fetch_ep_data(keywords: List[str], limit: int = 50) -> List[DocItem]:
         print(f"[EP] Error in fetch_ep_data: {e}")
     
     return all_items
+
+# -----------------------------
+# Standalone EP API Functions (Alternative to class-based approach)
+# -----------------------------
+
+def fetch_ep_procedures(query, limit=18):
+    """Fixed EP API call with proper headers"""
+    url = "https://data.europarl.europa.eu/api/v2/procedures"
+    
+    headers = {
+        'Accept': 'application/ld+json',  # Key fix!
+        'User-Agent': 'Policy-Radar/1.0',
+        'Accept-Language': 'en,fr;q=0.9',
+        'Accept-Encoding': 'gzip, deflate'
+    }
+    
+    params = {
+        'q': query,
+        'limit': limit,
+        'sort': '-created_date'
+        # Removed 'format': 'json' - this might be causing issues
+    }
+    
+    try:
+        response = requests.get(url, headers=headers, params=params, timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"[EP API] Request error for {url}: {e}")
+        return None
+
+def fetch_ep_documents(query, limit=12):
+    """Fixed EP API call for documents"""
+    url = "https://data.europarl.europa.eu/api/v2/documents"
+    
+    headers = {
+        'Accept': 'application/ld+json',  # Key fix!
+        'User-Agent': 'Policy-Radar/1.0',
+        'Accept-Language': 'en,fr;q=0.9'
+    }
+    
+    params = {
+        'q': query,
+        'limit': limit,
+        'sort': '-date'
+        # Remove 'format': 'json' - this might be causing issues
+    }
+    
+    try:
+        response = requests.get(url, headers=headers, params=params, timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"[EP API] Request error for {url}: {e}")
+        return None
+
+# Alternative EP API endpoints to try
+ALTERNATIVE_EP_ENDPOINTS = [
+    "https://data.europarl.europa.eu/api/v2/meps",
+    "https://data.europarl.europa.eu/api/v2/activities", 
+    "https://data.europarl.europa.eu/api/v2/plenary-documents"
+]
+
+def test_ep_endpoints():
+    """Test which EP endpoints work"""
+    working_endpoints = []
+    
+    for endpoint in ALTERNATIVE_EP_ENDPOINTS:
+        try:
+            headers = {'Accept': 'application/ld+json'}
+            response = requests.get(endpoint, headers=headers, timeout=10)
+            if response.status_code == 200:
+                working_endpoints.append(endpoint)
+                print(f"✅ Working: {endpoint}")
+            else:
+                print(f"❌ Failed ({response.status_code}): {endpoint}")
+        except Exception as e:
+            print(f"❌ Error {endpoint}: {e}")
+    
+    return working_endpoints
+
+def get_date_cutoff(days_back):
+    """Use timezone-aware datetime"""
+    from datetime import timezone
+    return dt.datetime.now(timezone.utc) - dt.timedelta(days=days_back)
 
 # -----------------------------
 # Normalize + Write
