@@ -1,0 +1,99 @@
+/* Add this to your src/index.css or src/App.css */
+
+/* Original radar animation */
+@keyframes radar-spin {
+  to {
+    transform: rotate(720deg);
+  }
+}
+
+.animate-radar-sweep {
+  animation: radar-spin 10s linear 2 forwards;
+}
+
+/* New animation variations */
+@keyframes radar-spin-slow {
+  to {
+    transform: rotate(720deg);
+  }
+}
+
+.animate-radar-sweep-slow {
+  animation: radar-spin-slow 15s ease-in-out 2 forwards;
+}
+
+@keyframes radar-continuous {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-radar-continuous {
+  animation: radar-continuous 4s linear infinite;
+}
+
+@keyframes radar-startup {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0.3;
+  }
+  25% {
+    opacity: 1;
+  }
+  50% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(720deg);
+    opacity: 0.8;
+  }
+}
+
+.animate-radar-startup {
+  animation: radar-startup 8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 1 forwards;
+}
+
+@keyframes radar-alert {
+  to {
+    transform: rotate(1080deg);
+  }
+}
+
+.animate-radar-alert {
+  animation: radar-alert 6s ease-in-out 1 forwards;
+}
+
+/* Intensity classes */
+.radar-sweep-intensity-low {
+  opacity: 0.4;
+  filter: blur(3px);
+}
+
+.radar-sweep-intensity-medium {
+  opacity: 0.7;
+  filter: blur(1px);
+}
+
+.radar-sweep-intensity-high {
+  opacity: 0.9;
+  filter: blur(0px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .animate-radar-sweep {
+    animation-duration: 8s;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .animate-radar-sweep,
+  .animate-radar-sweep-slow,
+  .animate-radar-continuous,
+  .animate-radar-startup,
+  .animate-radar-alert {
+    animation: none;
+    opacity: 0.5;
+  }
+}
