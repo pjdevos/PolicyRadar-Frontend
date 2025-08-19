@@ -18,19 +18,24 @@ class ApiClient {
     retries: number = 3
   ): Promise<T> {
     const url = `${BASE_URL}${endpoint}`;
-    
-    const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      timeout: 10000, // 10 second timeout
-      ...options,
-    };
 
     for (let attempt = 0; attempt <= retries; attempt++) {
+      // Create timeout controller for each attempt
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
       try {
+        const config: RequestInit = {
+          headers: {
+            'Content-Type': 'application/json',
+            ...options.headers,
+          },
+          signal: controller.signal,
+          ...options,
+        };
+        
         const response = await fetch(url, config);
+        clearTimeout(timeoutId);
         
         if (!response.ok) {
           const error: APIError = await response.json().catch(() => ({
@@ -42,11 +47,15 @@ class ApiClient {
 
         return await response.json();
       } catch (error) {
+        clearTimeout(timeoutId);
+        
         const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
+        const isAbortError = error instanceof Error && error.name === 'AbortError';
+        const isRetriableError = isNetworkError || isAbortError;
         const isLastAttempt = attempt === retries;
         
-        if (isNetworkError && !isLastAttempt) {
-          console.warn(`Network error on attempt ${attempt + 1}, retrying...`);
+        if (isRetriableError && !isLastAttempt) {
+          console.warn(`Network error on attempt ${attempt + 1}, retrying...`, error.message);
           // Exponential backoff: wait 1s, then 2s, then 4s
           await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
           continue;
