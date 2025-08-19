@@ -206,7 +206,7 @@ const PolicyRadarDashboard = () => {
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Policy Radar</h1>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Policy Radar ⚡</h1>
                 <span className="text-xs text-gray-500 font-medium">Brussels Public Affairs Platform</span>
               </div>
             </div>
