@@ -1,18 +1,20 @@
 [providers]
-  nodejs = "18"
+  nodejs = "22"
 
 [phases.setup]
-  nixPkgs = ["nodejs-18_x", "npm-9_x"]
+  nixPkgs = ["nodejs-22_x", "npm-10_x"]
 
 [phases.install]
-  cmds = ["npm ci"]
+  cmds = ["npm ci --only=production --no-optional --prefer-offline --maxsockets=1"]
 
 [phases.build]
   cmds = ["npm run build"]
 
 [start]
-  cmd = "npx serve -s build -l 3000"
+  cmd = "npx serve -s build -l ${PORT:-3000}"
 
 [variables]
   NODE_ENV = "production"
   REACT_APP_API_BASE_URL = "https://policyradar-backend-production.up.railway.app/api"
+  NODE_OPTIONS = "--max-old-space-size=512"
+  NPM_CONFIG_MAXSOCKETS = "1"
