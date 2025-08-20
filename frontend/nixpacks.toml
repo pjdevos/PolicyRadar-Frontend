@@ -11,7 +11,7 @@
   cmds = ["npm run build"]
 
 [start]
-  cmd = "npx serve -s build -l ${PORT:-3000} -H 0.0.0.0"
+  cmd = "npx serve -s build -l tcp://0.0.0.0:${PORT:-3000}"
 
 [variables]
   NODE_ENV = "production"
