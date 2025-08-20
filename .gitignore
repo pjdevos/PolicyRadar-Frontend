@@ -1,49 +1,23 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-.venv/
-.pyenv
-dist/
+# React/Node.js Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Build Output
 build/
-*.egg-info/
+dist/
+*.tsbuildinfo
 
-# Data & Models
-data/
-vectors/
-logs/
-backups/
-*.jsonl
-*.csv
-*.pkl
-*.index
-*.faiss
-*.model
-
-# Environment & Secrets
+# Environment Variables
 .env
 .env.local
 .env.development
 .env.test
 .env.production
 .env.staging
-*.key
-*.pem
-*.crt
-secrets/
-config/local.py
-config/secrets.py
-
-# API Keys & Tokens
-*.token
-*.secret
-auth.json
-credentials.json
-service-account.json
 
 # IDE & Editors
 .vscode/
@@ -64,33 +38,15 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# Logs & Monitoring
+# Testing
+coverage/
+.nyc_output/
+.coverage
+
+# Logs
 *.log
 *.log.*
 logs/
-monitoring/
-metrics/
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.nyc_output/
-
-# Jupyter Notebooks
-.ipynb_checkpoints/
-*.ipynb
-
-# Docker
-.dockerignore
-docker-compose.override.yml
-
-# Node.js (for any frontend tooling)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Temporary files
 *.tmp
@@ -98,7 +54,42 @@ yarn-error.log*
 .cache/
 temp/
 
-# Database files
-*.db
-*.sqlite
-*.sqlite3
+# TypeScript
+*.tsbuildinfo
+
+# ESLint
+.eslintcache
+
+# Storybook
+storybook-static/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Next.js build output
+.next
+
+# Gatsby files
+.cache/
+public
+
+# Vercel
+.vercel
