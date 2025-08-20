@@ -15,9 +15,14 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 from pathlib import Path
+from functools import wraps
+import time
+from collections import defaultdict
+from threading import Lock
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Query, status
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Query, status, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, Field
 import uvicorn
 
@@ -78,6 +83,49 @@ class StatsResponse(BaseModel):
     recent_activity: Dict[str, int]
     last_update: Optional[str]
 
+# Rate limiting storage
+rate_limit_storage = defaultdict(lambda: {"count": 0, "reset_time": 0})
+rate_limit_lock = Lock()
+
+# Rate limiting configuration
+RATE_LIMITS = {
+    "default": {"requests": 100, "window": 3600},  # 100 per hour
+    "/api/rag/query": {"requests": 10, "window": 3600},  # 10 RAG queries per hour
+    "/api/ingest": {"requests": 5, "window": 3600},  # 5 ingests per hour
+}
+
+def rate_limit_middleware(request: Request, call_next):
+    """Rate limiting middleware"""
+    client_ip = request.client.host
+    endpoint = request.url.path
+    
+    # Get rate limit config for this endpoint
+    limit_config = RATE_LIMITS.get(endpoint, RATE_LIMITS["default"])
+    
+    with rate_limit_lock:
+        now = time.time()
+        client_key = f"{client_ip}:{endpoint}"
+        
+        # Reset if window expired
+        if now > rate_limit_storage[client_key]["reset_time"]:
+            rate_limit_storage[client_key] = {
+                "count": 0,
+                "reset_time": now + limit_config["window"]
+            }
+        
+        # Check rate limit
+        if rate_limit_storage[client_key]["count"] >= limit_config["requests"]:
+            raise HTTPException(
+                status_code=429,
+                detail=f"Rate limit exceeded. Try again in {int(rate_limit_storage[client_key]['reset_time'] - now)} seconds."
+            )
+        
+        # Increment counter
+        rate_limit_storage[client_key]["count"] += 1
+    
+    response = call_next(request)
+    return response
+
 # FastAPI app
 app = FastAPI(
     title="Policy Radar API",
@@ -87,14 +135,92 @@ app = FastAPI(
     redoc_url="/api/redoc"
 )
 
-# CORS middleware for frontend
+# Security middleware - Trusted hosts
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=[
+        "localhost", 
+        "127.0.0.1",
+        "*.up.railway.app",
+        "*.vercel.app",
+        "policyradar-frontend-production.up.railway.app"
+    ]
+)
+
+# CORS middleware - Updated for Vercel domain
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://127.0.0.1:3000",
+        "https://policyradar-frontend-production.up.railway.app",
+        "https://*.vercel.app",  # Allow Vercel domains
+    ],
+    allow_credentials=False,  # Set to False for security
+    allow_methods=["GET", "POST"],  # Only allow necessary methods
+    allow_headers=["Content-Type", "Accept", "Authorization"],
 )
+
+# Security headers middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    # Apply rate limiting
+    try:
+        client_ip = request.client.host if request.client else "unknown"
+        endpoint = request.url.path
+        
+        # Get rate limit config for this endpoint
+        limit_config = RATE_LIMITS.get(endpoint, RATE_LIMITS["default"])
+        
+        with rate_limit_lock:
+            now = time.time()
+            client_key = f"{client_ip}:{endpoint}"
+            
+            # Reset if window expired
+            if now > rate_limit_storage[client_key]["reset_time"]:
+                rate_limit_storage[client_key] = {
+                    "count": 0,
+                    "reset_time": now + limit_config["window"]
+                }
+            
+            # Check rate limit
+            if rate_limit_storage[client_key]["count"] >= limit_config["requests"]:
+                return Response(
+                    content=f"Rate limit exceeded. Try again in {int(rate_limit_storage[client_key]['reset_time'] - now)} seconds.",
+                    status_code=429,
+                    headers={"Retry-After": str(int(rate_limit_storage[client_key]["reset_time"] - now))}
+                )
+            
+            # Increment counter
+            rate_limit_storage[client_key]["count"] += 1
+    except Exception as e:
+        print(f"Rate limiting error: {e}")
+    
+    response = await call_next(request)
+    
+    # Add security headers
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    
+    # Rate limit headers
+    try:
+        client_ip = request.client.host if request.client else "unknown"
+        endpoint = request.url.path
+        limit_config = RATE_LIMITS.get(endpoint, RATE_LIMITS["default"])
+        client_key = f"{client_ip}:{endpoint}"
+        
+        remaining = max(0, limit_config["requests"] - rate_limit_storage[client_key]["count"])
+        response.headers["X-RateLimit-Limit"] = str(limit_config["requests"])
+        response.headers["X-RateLimit-Remaining"] = str(remaining)
+        response.headers["X-RateLimit-Reset"] = str(int(rate_limit_storage[client_key]["reset_time"]))
+    except Exception:
+        pass
+    
+    return response
 
 # Global state
 vector_store: Optional[PolicyVectorStore] = None
@@ -300,8 +426,8 @@ async def get_stats():
     )
 
 @app.post("/api/rag/query", response_model=RAGResponse)
-async def rag_query(query_request: RAGQuery):
-    """Submit a RAG query for natural language Q&A"""
+async def rag_query(query_request: RAGQuery, request: Request):
+    """Submit a RAG query for natural language Q&A - Rate limited endpoint"""
 
     if not rag_service:
         raise HTTPException(
@@ -309,15 +435,40 @@ async def rag_query(query_request: RAGQuery):
             detail="RAG service not available. Run data ingestion first to build vector index."
         )
 
+    # Input validation and sanitization
+    query_text = query_request.query.strip()
+    
+    # Check for empty query
+    if not query_text:
+        raise HTTPException(
+            status_code=400,
+            detail="Query cannot be empty."
+        )
+    
+    # Check for suspicious patterns (basic security)
+    suspicious_patterns = ["<script", "javascript:", "eval(", "exec(", "__import__"]
+    if any(pattern in query_text.lower() for pattern in suspicious_patterns):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid query format."
+        )
+    
+    # Limit query length
+    if len(query_text) > 500:
+        raise HTTPException(
+            status_code=400,
+            detail="Query too long. Maximum 500 characters allowed."
+        )
+
     start_time = datetime.utcnow()
 
     try:
         # Process query
         result = rag_service.query(
-            query_request.query,
+            query_text,
             source_filter=query_request.source_filter,
             doc_type_filter=query_request.doc_type_filter,
-            k=query_request.k
+            k=min(query_request.k, 10)  # Limit max results for performance
         )
 
         # Convert sources to serializable format
@@ -352,8 +503,33 @@ async def rag_query(query_request: RAGQuery):
         )
 
 @app.post("/api/ingest")
-async def trigger_ingest(request: IngestRequest, background_tasks: BackgroundTasks):
-    """Trigger data ingestion and vector indexing"""
+async def trigger_ingest(request: IngestRequest, background_tasks: BackgroundTasks, http_request: Request):
+    """Trigger data ingestion and vector indexing - Restricted endpoint"""
+    
+    # Additional validation for sensitive operation
+    topic = request.topic.strip()
+    
+    # Validate topic format
+    if not topic or len(topic) < 2 or len(topic) > 50:
+        raise HTTPException(
+            status_code=400,
+            detail="Topic must be between 2 and 50 characters."
+        )
+    
+    # Only allow alphanumeric and common policy terms
+    import re
+    if not re.match(r'^[a-zA-Z0-9\s\-_]+$', topic):
+        raise HTTPException(
+            status_code=400,
+            detail="Topic contains invalid characters. Only alphanumeric, spaces, hyphens and underscores allowed."
+        )
+    
+    # Validate days parameter
+    if request.days and (request.days < 1 or request.days > 365):
+        raise HTTPException(
+            status_code=400,
+            detail="Days parameter must be between 1 and 365."
+        )
 
     def run_ingestion():
         """Background task for data ingestion"""
