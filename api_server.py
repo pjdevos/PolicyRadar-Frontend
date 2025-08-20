@@ -26,6 +26,9 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, Field
 import uvicorn
 
+# Import configuration system
+from config.settings import settings, validate_startup_config
+
 # Import our existing modules
 import sys
 sys.path.append('.')
@@ -44,10 +47,10 @@ except ImportError as e:
     class PolicyRAGService:
         pass
 
-# Configuration
-DATA_DIR = Path("./data")
-VECTORS_DIR = Path("./vectors")
-INDEX_PATH = VECTORS_DIR / "policy_index"
+# Configuration from settings
+DATA_DIR = settings.database.DATA_DIR
+VECTORS_DIR = settings.database.VECTOR_DB_PATH
+INDEX_PATH = VECTORS_DIR / settings.database.VECTOR_INDEX_NAME
 
 # Pydantic models for API
 class DocumentFilter(BaseModel):
@@ -87,11 +90,11 @@ class StatsResponse(BaseModel):
 rate_limit_storage = defaultdict(lambda: {"count": 0, "reset_time": 0})
 rate_limit_lock = Lock()
 
-# Rate limiting configuration
+# Rate limiting configuration from settings
 RATE_LIMITS = {
-    "default": {"requests": 100, "window": 3600},  # 100 per hour
-    "/api/rag/query": {"requests": 10, "window": 3600},  # 10 RAG queries per hour
-    "/api/ingest": {"requests": 5, "window": 3600},  # 5 ingests per hour
+    "default": {"requests": settings.api.DEFAULT_RATE_LIMIT, "window": 3600},
+    "/api/rag/query": {"requests": settings.api.RAG_RATE_LIMIT, "window": 3600},
+    "/api/ingest": {"requests": settings.api.INGEST_RATE_LIMIT, "window": 3600},
 }
 
 def rate_limit_middleware(request: Request, call_next):
@@ -135,30 +138,19 @@ app = FastAPI(
     redoc_url="/api/redoc"
 )
 
-# Security middleware - Trusted hosts
+# Security middleware - Trusted hosts from settings
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=[
-        "localhost", 
-        "127.0.0.1",
-        "*.up.railway.app",
-        "*.vercel.app",
-        "policyradar-frontend-production.up.railway.app"
-    ]
+    allowed_hosts=settings.security.TRUSTED_HOSTS
 )
 
-# CORS middleware - Updated for Vercel domain
+# CORS middleware - From settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000", 
-        "http://127.0.0.1:3000",
-        "https://policyradar-frontend-production.up.railway.app",
-        "https://*.vercel.app",  # Allow Vercel domains
-    ],
+    allow_origins=settings.api.CORS_ORIGINS,
     allow_credentials=False,  # Set to False for security
-    allow_methods=["GET", "POST"],  # Only allow necessary methods
-    allow_headers=["Content-Type", "Accept", "Authorization"],
+    allow_methods=settings.api.CORS_METHODS,
+    allow_headers=settings.api.CORS_HEADERS,
 )
 
 # Security headers middleware
@@ -233,9 +225,12 @@ async def startup_event():
 
     print("🚀 Starting Policy Radar API...")
 
-    # Create directories
-    DATA_DIR.mkdir(exist_ok=True)
-    VECTORS_DIR.mkdir(exist_ok=True)
+    # Validate configuration and create directories
+    try:
+        validate_startup_config()
+    except Exception as e:
+        print(f"❌ Configuration validation failed: {e}")
+        raise e
 
     # Try to load existing vector index
     if INDEX_PATH.exists():
@@ -453,11 +448,11 @@ async def rag_query(query_request: RAGQuery, request: Request):
             detail="Invalid query format."
         )
     
-    # Limit query length
-    if len(query_text) > 500:
+    # Limit query length using settings
+    if len(query_text) > settings.security.MAX_QUERY_LENGTH:
         raise HTTPException(
             status_code=400,
-            detail="Query too long. Maximum 500 characters allowed."
+            detail=f"Query too long. Maximum {settings.security.MAX_QUERY_LENGTH} characters allowed."
         )
 
     start_time = datetime.utcnow()
@@ -509,11 +504,11 @@ async def trigger_ingest(request: IngestRequest, background_tasks: BackgroundTas
     # Additional validation for sensitive operation
     topic = request.topic.strip()
     
-    # Validate topic format
-    if not topic or len(topic) < 2 or len(topic) > 50:
+    # Validate topic format using settings
+    if not topic or len(topic) < 2 or len(topic) > settings.security.MAX_TOPIC_LENGTH:
         raise HTTPException(
             status_code=400,
-            detail="Topic must be between 2 and 50 characters."
+            detail=f"Topic must be between 2 and {settings.security.MAX_TOPIC_LENGTH} characters."
         )
     
     # Only allow alphanumeric and common policy terms
@@ -635,11 +630,13 @@ async def get_sources():
 # Development and production server
 if __name__ == "__main__":
     import os
-    port = int(os.getenv("PORT", 8000))
+    # Railway PORT override or use settings
+    port = int(os.getenv("PORT", settings.api.PORT))
     uvicorn.run(
         "api_server:app",
-        host="0.0.0.0",
-        port=port,  # Use Railway's PORT
-        reload=False,  # Disable reload in production
-        log_level="info"
+        host=settings.api.HOST,
+        port=port,
+        reload=settings.is_development(),
+        log_level=settings.logging.LOG_LEVEL.lower(),
+        workers=settings.api.WORKERS if settings.is_production() else 1
     )

@@ -9,7 +9,7 @@ import {
   APIError
 } from '../types/api';
 
-const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8001/api';
+import { api, configUtils } from '../config';
 
 // API Client with network resilience - retry logic and timeout handling
 
@@ -17,14 +17,15 @@ class ApiClient {
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
-    retries: number = 3
+    retries?: number
   ): Promise<T> {
-    const url = `${BASE_URL}${endpoint}`;
+    const url = configUtils.getApiUrl(endpoint);
+    const maxRetries = retries ?? api.retryAttempts;
 
-    for (let attempt = 0; attempt <= retries; attempt++) {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
       // Create timeout controller for each attempt
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), api.timeout);
       
       try {
         const config: RequestInit = {
@@ -54,12 +55,12 @@ class ApiClient {
         const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
         const isAbortError = error instanceof Error && error.name === 'AbortError';
         const isRetriableError = isNetworkError || isAbortError;
-        const isLastAttempt = attempt === retries;
+        const isLastAttempt = attempt === maxRetries;
         
         if (isRetriableError && !isLastAttempt) {
           console.warn(`Network error on attempt ${attempt + 1}, retrying...`, error.message);
-          // Exponential backoff: wait 1s, then 2s, then 4s
-          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+          // Use configured retry delay with exponential backoff
+          await new Promise(resolve => setTimeout(resolve, api.retryDelay * Math.pow(2, attempt)));
           continue;
         }
         
