@@ -17,4 +17,4 @@ providers = ["node"]
   cmds = ["cd frontend && npm run build"]
 
 [start]
-  cmd = "cd frontend && npx serve -s build -l $PORT --host 0.0.0.0"  # Bind to all interfaces
+  cmd = "cd frontend && npx serve -s build -l $PORT"
