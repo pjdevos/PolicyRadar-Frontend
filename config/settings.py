@@ -10,8 +10,8 @@ import os
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional, Set
-from pydantic import BaseSettings, Field, validator, SecretStr
-from pydantic.env_settings import SettingsSourceCallable
+from pydantic import Field, SecretStr, field_validator
+from pydantic_settings import BaseSettings
 
 
 class Environment(str, Enum):
@@ -73,7 +73,8 @@ class APISettings(BaseSettings):
         description="Allowed CORS headers"
     )
     
-    @validator("CORS_ORIGINS", pre=True)
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
     def parse_cors_origins(cls, v):
         if isinstance(v, str):
             return [origin.strip() for origin in v.split(",") if origin.strip()]
@@ -108,7 +109,8 @@ class SecuritySettings(BaseSettings):
         description="Allowed file extensions for uploads"
     )
     
-    @validator("TRUSTED_HOSTS", pre=True)
+    @field_validator("TRUSTED_HOSTS", mode="before")
+    @classmethod
     def parse_trusted_hosts(cls, v):
         if isinstance(v, str):
             return [host.strip() for host in v.split(",") if host.strip()]
@@ -176,7 +178,8 @@ class LoggingSettings(BaseSettings):
     LOG_MAX_SIZE: str = Field(default="10MB", description="Maximum log file size")
     LOG_BACKUP_COUNT: int = Field(default=5, description="Number of backup log files")
     
-    @validator("LOG_LEVEL")
+    @field_validator("LOG_LEVEL")
+    @classmethod
     def validate_log_level(cls, v):
         valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         if v.upper() not in valid_levels:
@@ -202,10 +205,11 @@ class Settings(BaseSettings):
     ingestion: DataIngestionSettings = DataIngestionSettings()
     logging: LoggingSettings = LoggingSettings()
     
-    @validator("DEBUG", pre=True)
-    def set_debug_based_on_env(cls, v, values):
+    @field_validator("DEBUG", mode="before")
+    @classmethod  
+    def set_debug_based_on_env(cls, v, info):
         """Set debug mode based on environment"""
-        env = values.get("ENVIRONMENT", Environment.DEVELOPMENT)
+        env = info.data.get("ENVIRONMENT", Environment.DEVELOPMENT)
         if env == Environment.PRODUCTION:
             return False
         return v
@@ -258,7 +262,7 @@ class Settings(BaseSettings):
         env_nested_delimiter = "__"
         
         # Allow extra fields for extensibility
-        allow_population_by_field_name = True
+        extra = "allow"
 
 
 # Global settings instance
