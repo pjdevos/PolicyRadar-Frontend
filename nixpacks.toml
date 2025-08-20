@@ -1,11 +1,11 @@
-[providers]
-  nodejs = "18"
+providers = ["nodejs"]
 
 [variables]
   NODE_ENV = "production"
   REACT_APP_API_BASE_URL = "https://policyradar-backend-production.up.railway.app/api"
   NODE_OPTIONS = "--max-old-space-size=512"
   NPM_CONFIG_MAXSOCKETS = "1"
+  NIXPACKS_NODE_VERSION = "18"
 
 [phases.setup]
   nixPkgs = ["nodejs-18_x", "npm-9_x"]
