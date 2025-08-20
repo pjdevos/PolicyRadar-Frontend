@@ -1,0 +1,19 @@
+providers = ["python"]
+
+[variables]
+  ENVIRONMENT = "production"
+  DEBUG = "false"
+  PYTHONPATH = "."
+  PYTHON_VERSION = "3.11"
+
+[phases.setup]
+  nixPkgs = ["python311", "pip"]
+
+[phases.install]
+  cmds = ["pip install --no-cache-dir -r requirements.txt"]
+
+[phases.build]
+  cmds = ["python -c 'from config.settings import validate_startup_config; validate_startup_config()'"]
+
+[start]
+  cmd = "python api_server.py"

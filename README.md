@@ -1,116 +1,137 @@
 # Policy Radar
 
-Brussels public affairs platform with AI-enhanced news feeds and document tracking.
+Brussels public affairs platform with AI-enhanced document tracking.
 
-## Features
+> **⚠️ Repository Split Notice**: This repository is being restructured for better maintainability. 
+> 
+> - **Backend** (Python/FastAPI): Moving to [PolicyRadar-Backend](https://github.com/pjdevos/PolicyRadar-Backend)
+> - **Frontend** (React/TypeScript): Staying in this repository
 
-- **Multi-source data ingestion**: EURACTIV RSS + EUR-Lex SPARQL + EP Open Data API
-- **Vector search**: Multilingual semantic search with FAISS
-- **RAG Q&A**: AI-powered question answering with source citations
-- **Real-time dashboard**: React UI with filtering and analytics
-- **REST API**: Complete backend for frontend integration
+## 🏗️ New Architecture
 
-## Quick Start
+```
+PolicyRadar-Frontend          PolicyRadar-Backend
+[React Dashboard]      ←→     [FastAPI API]
+[Search Interface]     ←→     [RAG Service] 
+[RAG Chat UI]          ←→     [Vector Store]
+[Statistics View]      ←→     [Data Ingestion]
+```
 
-### 1. Setup Environment
+## 📦 Current Repository Contents
 
+This repository contains:
+- **Frontend React application** (`/frontend`)
+- **Migration preparation files** (temporary)
+- **Backend files** (being moved to separate repo)
+
+## 🚀 Quick Start (Transition Period)
+
+### Frontend Development
 ```bash
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
+cd frontend
+npm install
+npm start
+```
 
-# Install dependencies
+### Backend Development  
+```bash
+# Install Python dependencies
 pip install -r requirements.txt
 
-# Configure environment
-cp .env.example .env
-# Edit .env with your API keys
+# Start backend server
+python api_server.py
 ```
 
-### 2. Add Core Files
+## 🔄 Migration Status
 
-Copy these files from the artifacts:
-- `poc_policy_radar.py` (your existing PoC)
-- `vector_indexer.py` (vector indexing module)
-- `rag_service.py` (RAG service)
+- [x] **Backend files prepared** for separate repository
+- [x] **Deployment configurations** updated
+- [x] **Documentation** prepared for split
+- [ ] **Backend repository** created
+- [ ] **Frontend cleanup** completed
+- [ ] **Cross-repository** links updated
 
-### 3. Start Development Server
+## 📋 Migration Plan
 
-```bash
-# Make scripts executable
-chmod +x *.sh
+See [MIGRATION_PLAN.md](./MIGRATION_PLAN.md) for detailed steps.
 
-# Start backend
-./start_dev.sh
+### Files Moving to Backend Repo
+- All `*.py` files (API, RAG, indexing, ingestion)
+- `requirements.txt`
+- `config/` directory
+- Backend deployment configs
+- Backend documentation
+
+### Files Staying in Frontend Repo
+- `frontend/` directory (React app)
+- Frontend `package.json`
+- Frontend deployment configs
+- Frontend documentation
+
+## 🔗 Related Repositories
+
+- **Backend API**: [PolicyRadar-Backend](https://github.com/pjdevos/PolicyRadar-Backend) *(coming soon)*
+- **Frontend Dashboard**: [PolicyRadar-Frontend](https://github.com/pjdevos/PolicyRadar-Frontend) *(this repo)*
+
+## 📡 API Integration
+
+The frontend connects to the backend API:
+
+```typescript
+// Frontend configuration
+const API_BASE_URL = 'https://policyradar-backend-production.up.railway.app/api';
+
+// Example API calls
+const documents = await apiClient.getDocuments({ topic: 'climate' });
+const ragResponse = await apiClient.queryRAG({ query: 'EU energy policy' });
 ```
 
-### 4. Initial Data Ingestion
+## 🛡️ Features
 
-```bash
-# Ingest data for a specific topic
-curl -X POST http://localhost:8000/api/ingest \
-  -H 'Content-Type: application/json' \
-  -d '{"topic": "hydrogen", "days": 30}'
-```
+### Backend (Moving to separate repo)
+- **FastAPI REST API** with comprehensive endpoints
+- **RAG Q&A system** with OpenAI/Anthropic integration
+- **Vector search** with FAISS indexing
+- **Data ingestion** from EURACTIV, EUR-Lex, EP Open Data
+- **Security features** with rate limiting and CORS
+- **Typed configuration** with Pydantic Settings
 
-### 5. Test the API
+### Frontend (This repository)
+- **React dashboard** with modern UI
+- **Document browser** with advanced filtering
+- **RAG chat interface** for natural language queries
+- **Real-time statistics** and analytics
+- **Responsive design** for all devices
+- **TypeScript** with full type safety
 
-```bash
-./test_api.sh
-```
+## 🚀 Deployment
 
-## API Endpoints
+### Current (Temporary)
+- **Frontend + Backend**: Railway deployment
+- **Mixed repository**: Both Python and Node.js
 
-- `GET /api/health` - Service health check
-- `GET /api/documents` - Get policy documents with filters
-- `GET /api/stats` - Dashboard statistics
-- `POST /api/rag/query` - AI-powered Q&A
-- `POST /api/ingest` - Trigger data collection
-- `GET /api/topics` - Available topics
-- `GET /api/sources` - Available sources
+### After Split
+- **Frontend**: Vercel/Railway (Node.js only)
+- **Backend**: Railway (Python only)
+- **Independent CI/CD**: Separate build pipelines
 
-## Architecture
+## 📄 Documentation
 
-```
-[Frontend] ←→ [FastAPI] ←→ [Vector Store] ←→ [RAG Service]
-    ↓              ↓              ↓
-[React UI]   [REST API]   [FAISS Index]
-                  ↓
-           [Data Ingestion]
-            ↓     ↓      ↓
-      [EURACTIV] [EUR-Lex] [EP Open Data]
-```
+- **Current docs**: See individual README files
+- **API docs**: Available at `/api/docs` when backend is running
+- **Migration guide**: [MIGRATION_PLAN.md](./MIGRATION_PLAN.md)
 
-## Development
+## 🤝 Contributing
 
-### API Documentation
+During the migration period:
+1. **Frontend changes**: Make in `/frontend` directory
+2. **Backend changes**: Will be moved to separate repo
+3. **Documentation**: Update both repositories
 
-Visit http://localhost:8000/api/docs for interactive API documentation.
-
-### Adding New Features
-
-1. **New data sources**: Extend `poc_policy_radar.py`
-2. **API endpoints**: Add to `api_server.py`
-3. **Frontend features**: Update React components
-
-### Testing
-
-```bash
-# Test API endpoints
-./test_api.sh
-
-# Test specific endpoint
-curl http://localhost:8000/api/health
-```
-
-## Production Deployment
-
-See deployment guides for:
-- Docker deployment
-- Systemd service setup
-- Nginx reverse proxy
-- Environment configuration
-
-## License
+## 📄 License
 
 MIT License - see LICENSE file for details.
+
+---
+
+**🔄 This repository is in transition. Check back soon for the cleaned-up frontend-only version!**
