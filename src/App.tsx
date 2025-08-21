@@ -1,12 +1,20 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Filter, Calendar, Bell, ExternalLink, FileText, Users, Clock, ChevronDown, AlertCircle, CheckCircle, XCircle, TrendingUp, BarChart3, Zap, ArrowRight, Sparkles } from 'lucide-react';
-import { apiClient } from './services/api';
-import { PolicyDocument, StatsResponse } from './types/api';
+import {
+  Search, Filter, Calendar, Bell, ExternalLink, FileText, Users, Clock,
+  ChevronDown, AlertCircle, CheckCircle, XCircle, TrendingUp, BarChart3,
+  Zap, ArrowRight, Sparkles
+} from 'lucide-react';
+import { apiClient } from './services/api-client';
+import { Document as PolicyDocument, GetStatsResponse as StatsResponse } from './services/api-client';
 import RadarLogo from './components/RadarLogo';
 import './PolicyRadar.css';
 
+type ExtraMeta = {
+  stage?: 'First reading' | 'Second reading' | 'Adopted' | 'Rejected' | string;
+  committees?: string[];
+};
+
 const PolicyRadarDashboard = () => {
-  
   const [selectedTopic, setSelectedTopic] = useState('all');
   const [selectedSource, setSelectedSource] = useState('all');
   const [selectedDocType, setSelectedDocType] = useState('all');
@@ -16,7 +24,7 @@ const PolicyRadarDashboard = () => {
   const [chatQuery, setChatQuery] = useState('');
   const [chatResponse, setChatResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // API state
   const [documents, setDocuments] = useState<PolicyDocument[]>([]);
   const [stats, setStats] = useState<StatsResponse | null>(null);
@@ -29,30 +37,38 @@ const PolicyRadarDashboard = () => {
 
   // Real-time updates
   const [lastUpdate, setLastUpdate] = useState(new Date());
-  
+
+  // Simple concurrency guards (prevents overlapping calls)
+  const [docsBusy, setDocsBusy] = useState(false);
+  const [statsBusy, setStatsBusy] = useState(false);
+
+  // ---- Data loaders
   const loadDocuments = useCallback(async () => {
+    if (docsBusy) return;
+    setDocsBusy(true);
     try {
       setDocumentsLoading(true);
       setError(null);
-      
       const response = await apiClient.getDocuments({
         topic: selectedTopic !== 'all' ? selectedTopic : undefined,
         source: selectedSource !== 'all' ? selectedSource : undefined,
         doc_type: selectedDocType !== 'all' ? selectedDocType : undefined,
-        days: parseInt(dateRange),
+        days: parseInt(dateRange, 10),
         search: searchQuery || undefined,
       });
-      
       setDocuments(response.documents);
     } catch (err) {
       console.error('API error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load documents');
     } finally {
       setDocumentsLoading(false);
+      setDocsBusy(false);
     }
-  }, [selectedTopic, selectedSource, selectedDocType, dateRange, searchQuery]);
-  
+  }, [selectedTopic, selectedSource, selectedDocType, dateRange, searchQuery, docsBusy]);
+
   const loadStats = useCallback(async () => {
+    if (statsBusy) return;
+    setStatsBusy(true);
     try {
       setStatsLoading(true);
       const response = await apiClient.getStats();
@@ -61,54 +77,64 @@ const PolicyRadarDashboard = () => {
       console.error('Failed to load stats:', err);
     } finally {
       setStatsLoading(false);
+      setStatsBusy(false);
     }
-  }, []);
-  
-  const loadFilterOptions = useCallback(async () => {
-    try {
-      const [topicsResponse, sourcesResponse] = await Promise.all([
-        apiClient.getTopics(),
-        apiClient.getSources()
-      ]);
-      
-      setAllTopics(topicsResponse.topics.map(t => t.name));
-      setAllSources(sourcesResponse.sources.map(s => s.name));
-      
-      // Extract doc types from documents
-      const docTypesSet = new Set<string>();
-      documents.forEach(doc => docTypesSet.add(doc.doc_type));
-      setAllDocTypes(Array.from(docTypesSet));
-    } catch (err) {
-      console.error('Failed to load filter options:', err);
-    }
-  }, [documents]);
+  }, [statsBusy]);
 
-  // Load initial data
+  // ---- Effects
+
+  // A) Initial load (once)
   useEffect(() => {
     loadDocuments();
     loadStats();
-    loadFilterOptions();
-    
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // B) Polling (refires on filter changes so interval uses fresh params)
+  useEffect(() => {
     const interval = setInterval(() => {
       setLastUpdate(new Date());
       loadDocuments();
       loadStats();
-    }, 60000);
-    
+    }, 60_000);
     return () => clearInterval(interval);
-  }, [loadDocuments, loadStats, loadFilterOptions]);
-  
-  // Reload documents when filters change
+  }, [selectedTopic, selectedSource, selectedDocType, dateRange, searchQuery, loadDocuments, loadStats]);
+
+  // C) Reload on filter updates (immediate)
   useEffect(() => {
     loadDocuments();
   }, [selectedTopic, selectedSource, selectedDocType, dateRange, searchQuery, loadDocuments]);
 
-  // Filtered data is now handled by API, so we use documents directly
-  const filteredData = useMemo(() => {
-    return documents.sort((a, b) => new Date(b.published).getTime() - new Date(a.published).getTime());
+  // D) Load topics & sources once
+  useEffect(() => {
+    (async () => {
+      try {
+        const [topicsResponse, sourcesResponse] = await Promise.all([
+          apiClient.getTopics(),
+          apiClient.getSources(),
+        ]);
+        setAllTopics(topicsResponse.topics.map(t => t.name));
+        setAllSources(sourcesResponse.sources.map(s => s.name));
+      } catch (err) {
+        console.error('Failed to load filter options:', err);
+      }
+    })();
+  }, []);
+
+  // E) Derive available doc types from current documents
+  useEffect(() => {
+    const set = new Set<string>();
+    documents.forEach(doc => doc.doc_type && set.add(doc.doc_type));
+    setAllDocTypes(Array.from(set));
   }, [documents]);
 
-  // Source badge styling - Enhanced with gradients
+  // Sorted by published desc (immutable)
+  const filteredData = useMemo(() => {
+    return [...documents].sort(
+      (a, b) => new Date(b.published).getTime() - new Date(a.published).getTime()
+    );
+  }, [documents]);
+
+  // Source badge styling
   const getSourceBadge = (source: string) => {
     const styles: { [key: string]: string } = {
       'EUR-Lex': 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border-blue-300 hover:from-blue-200 hover:to-blue-300',
@@ -118,7 +144,7 @@ const PolicyRadarDashboard = () => {
     return styles[source] || 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border-gray-300';
   };
 
-  // Document type icons - Fixed parameter typing
+  // Document type icons
   const getDocTypeIcon = (docType: string) => {
     switch(docType) {
       case 'legal': return <FileText className="w-4 h-4" />;
@@ -129,35 +155,37 @@ const PolicyRadarDashboard = () => {
     }
   };
 
-  // Status indicator for procedures - Enhanced with icons and better styling
-  const getStatusIndicator = (item: any) => {
+  // Status indicator for procedures
+  const getStatusIndicator = (item: PolicyDocument & { extra?: ExtraMeta }) => {
     if (item.extra?.stage) {
-      const statusConfig: { [key: string]: { color: string; bgColor: string; icon: React.ReactNode } } = {
-        'First reading': { 
-          color: 'text-blue-700', 
-          bgColor: 'bg-blue-100 border-blue-200', 
-          icon: <Clock className="w-3 h-3" /> 
+      const statusConfig: {
+        [key: string]: { color: string; bgColor: string; icon: React.ReactNode }
+      } = {
+        'First reading': {
+          color: 'text-blue-700',
+          bgColor: 'bg-blue-100 border-blue-200',
+          icon: <Clock className="w-3 h-3" />
         },
-        'Second reading': { 
-          color: 'text-amber-700', 
-          bgColor: 'bg-amber-100 border-amber-200', 
-          icon: <Zap className="w-3 h-3" /> 
+        'Second reading': {
+          color: 'text-amber-700',
+          bgColor: 'bg-amber-100 border-amber-200',
+          icon: <Zap className="w-3 h-3" />
         },
-        'Adopted': { 
-          color: 'text-green-700', 
-          bgColor: 'bg-green-100 border-green-200', 
-          icon: <CheckCircle className="w-3 h-3" /> 
+        'Adopted': {
+          color: 'text-green-700',
+          bgColor: 'bg-green-100 border-green-200',
+          icon: <CheckCircle className="w-3 h-3" />
         },
-        'Rejected': { 
-          color: 'text-red-700', 
-          bgColor: 'bg-red-100 border-red-200', 
-          icon: <XCircle className="w-3 h-3" /> 
+        'Rejected': {
+          color: 'text-red-700',
+          bgColor: 'bg-red-100 border-red-200',
+          icon: <XCircle className="w-3 h-3" />
         }
       };
-      const config = statusConfig[item.extra.stage] || { 
-        color: 'text-gray-700', 
-        bgColor: 'bg-gray-100 border-gray-200', 
-        icon: <Clock className="w-3 h-3" /> 
+      const config = statusConfig[item.extra.stage] || {
+        color: 'text-gray-700',
+        bgColor: 'bg-gray-100 border-gray-200',
+        icon: <Clock className="w-3 h-3" />
       };
       return (
         <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-semibold border ${config.bgColor} ${config.color}`}>
@@ -169,19 +197,22 @@ const PolicyRadarDashboard = () => {
     return null;
   };
 
+  const formatDate = (d: string | number | Date) =>
+    new Intl.DateTimeFormat('nl-BE', { year: 'numeric', month: 'short', day: '2-digit' })
+      .format(new Date(d));
+
   // Real AI chat using RAG API
   const handleChatSubmit = async () => {
     if (!chatQuery.trim()) return;
-
     setIsLoading(true);
-    
     try {
       const response = await apiClient.queryRAG({
         query: chatQuery,
-        context_documents: documents.slice(0, 10).map(doc => doc.id)
+        source_filter: selectedSource !== 'all' ? selectedSource : null,
+        doc_type_filter: selectedDocType !== 'all' ? selectedDocType : null,
+        k: 8
       });
-      
-      setChatResponse(response.response);
+      setChatResponse(response.answer);
     } catch (err) {
       setChatResponse('Sorry, I encountered an error processing your question. Please try again.');
       console.error('RAG query failed:', err);
@@ -189,6 +220,7 @@ const PolicyRadarDashboard = () => {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30">
@@ -213,8 +245,8 @@ const PolicyRadarDashboard = () => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 px-3 py-1.5 bg-green-50 rounded-full border border-green-200">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-green-700 font-medium">
-                  Updated {lastUpdate.toLocaleTimeString()}
+                <span className="text-xs text-green-700 font-medium" aria-live="polite">
+                  Updated {new Intl.DateTimeFormat('nl-BE', { hour: '2-digit', minute: '2-digit' }).format(lastUpdate)}
                 </span>
               </div>
               <div className="relative">
@@ -232,7 +264,7 @@ const PolicyRadarDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6 lg:space-y-8">
+          <div className="lg:col-span-2 space-y-6 lg:space-y-8" aria-busy={documentsLoading ? 'true' : 'false'}>
             
             {/* Search and Filters */}
             <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
@@ -395,83 +427,87 @@ const PolicyRadarDashboard = () => {
                     </div>
                   ))}
                 </div>
-              ) : filteredData.map((item, index) => (
-                <div key={item.id} className="group bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 hover:shadow-xl hover:border-white/40 transition-all duration-300 hover:-translate-y-1">
-                  <div className="p-4 sm:p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-4">
-                          <div className="flex items-center space-x-2">
-                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border-2 shadow-sm ${getSourceBadge(item.source)}`}>
-                              {item.source}
-                            </span>
-                            <div className="flex items-center space-x-2 px-2 py-1 bg-gray-100 rounded-lg">
-                              {getDocTypeIcon(item.doc_type)}
-                              <span className="text-xs font-semibold capitalize text-gray-700">{item.doc_type}</span>
-                            </div>
-                          </div>
-                          {getStatusIndicator(item)}
-                        </div>
-                        
-                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-200 leading-tight">
-                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-start space-x-2 group/link">
-                            <span className="flex-1">{item.title}</span>
-                            <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover/link:text-blue-500 transition-colors flex-shrink-0 mt-1" />
-                          </a>
-                        </h3>
-                        
-                        {item.summary && (
-                          <p className="text-gray-600 mb-4 leading-relaxed text-sm">
-                            {item.summary}
-                          </p>
-                        )}
-
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 pt-4 border-t border-gray-100">
-                          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm text-gray-500">
-                            <div className="flex items-center space-x-1.5">
-                              <Clock className="w-4 h-4" />
-                              <span className="font-medium">{new Date(item.published).toLocaleDateString()}</span>
-                            </div>
-                            {item.extra?.committees && (
-                              <div className="flex items-center space-x-1.5">
-                                <Users className="w-4 h-4" />
-                                <span className="font-medium">{item.extra.committees.slice(0, 2).join(', ')}</span>
+              ) : filteredData.map((item) => (
+                <div key={item.doc_id} className="group bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 hover:shadow-xl hover:border-white/40 transition-all duration-300 hover:-translate-y-1">
+                    <div className="p-4 sm:p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-4">
+                            <div className="flex items-center space-x-2">
+                              <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border-2 shadow-sm ${getSourceBadge(item.source)}`}>
+                                {item.source}
+                              </span>
+                              <div className="flex items-center space-x-2 px-2 py-1 bg-gray-100 rounded-lg">
+                                {getDocTypeIcon(item.doc_type)}
+                                <span className="text-xs font-semibold capitalize text-gray-700">{item.doc_type}</span>
                               </div>
-                            )}
+                            </div>
+                            {getStatusIndicator(item)}
                           </div>
                           
-                          <div className="flex flex-wrap gap-2">
-                            {item.topics.slice(0, 3).map(topic => (
-                              <span key={topic} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-200 hover:from-blue-100 hover:to-indigo-100 transition-colors cursor-pointer">
-                                {topic}
-                              </span>
-                            ))}
-                            {item.topics.length > 3 && (
-                              <span className="text-xs text-gray-500 font-medium">+{item.topics.length - 3} more</span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Progress indicator for procedures */}
-                        {item.doc_type === 'procedure' && (
-                          <div className="mt-4 pt-4 border-t border-gray-100">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs font-medium text-gray-600">Legislative Progress</span>
-                              <span className="text-xs font-semibold text-blue-600">{item.extra?.stage || 'In Progress'}</span>
+                          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-200 leading-tight">
+                            <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-start space-x-2 group/link">
+                              <span className="flex-1">{item.title}</span>
+                              <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover/link:text-blue-500 transition-colors flex-shrink-0 mt-1" />
+                            </a>
+                          </h3>
+                          
+                          {item.summary && (
+                            <p className="text-gray-600 mb-4 leading-relaxed text-sm">
+                              {item.summary}
+                            </p>
+                          )}
+
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 pt-4 border-t border-gray-100">
+                            <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm text-gray-500">
+                              <div className="flex items-center space-x-1.5">
+                                <Clock className="w-4 h-4" />
+                                <span className="font-medium">{formatDate(item.published)}</span>
+                              </div>
+                              {item.extra?.committees && item.extra.committees.length > 0 && (
+                                <div className="flex items-center space-x-1.5">
+                                  <Users className="w-4 h-4" />
+                                  <span className="font-medium">{item.extra.committees.slice(0, 2).join(', ')}</span>
+                                </div>
+                              )}
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-500" 
-                                   style={{width: item.extra?.stage === 'First reading' ? '33%' : item.extra?.stage === 'Second reading' ? '66%' : item.extra?.stage === 'Adopted' ? '100%' : '20%'}}>
+
+                            <div className="flex flex-wrap gap-2">
+                              {item.topics.slice(0, 3).map(topic => (
+                                <span
+                                  key={topic}
+                                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-200 hover:from-blue-100 hover:to-indigo-100 transition-colors cursor-pointer"
+                                  onClick={() => setSelectedTopic(topic)}
+                                  title={`Filter by ${topic}`}
+                                >
+                                  {topic}
+                                </span>
+                              ))}
+                              {item.topics.length > 3 && (
+                                <span className="text-xs text-gray-500 font-medium">+{item.topics.length - 3} more</span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Progress indicator for procedures */}
+                          {item.doc_type === 'procedure' && (
+                            <div className="mt-4 pt-4 border-t border-gray-100">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-medium text-gray-600">Legislative Progress</span>
+                                <span className="text-xs font-semibold text-blue-600">{item.extra?.stage || 'In Progress'}</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-500" 
+                                     style={{width: item.extra?.stage === 'First reading' ? '33%' : item.extra?.stage === 'Second reading' ? '66%' : item.extra?.stage === 'Adopted' ? '100%' : '20%'}}>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
 
             {!documentsLoading && filteredData.length === 0 && (
               <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-12 text-center">
@@ -481,7 +517,7 @@ const PolicyRadarDashboard = () => {
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-3">No documents found</h3>
                   <p className="text-gray-600 mb-6 leading-relaxed">We couldn't find any documents matching your current filters. Try adjusting your search terms or expanding your date range.</p>
-                  <button 
+                  <button
                     onClick={() => {
                       setSearchQuery('');
                       setSelectedTopic('all');
@@ -496,6 +532,7 @@ const PolicyRadarDashboard = () => {
                 </div>
               </div>
             )}
+            </div>
           </div>
 
           {/* Sidebar */}
@@ -590,14 +627,20 @@ const PolicyRadarDashboard = () => {
                     <span className="text-blue-700 font-medium">Total Documents</span>
                     <span className="text-xl font-bold text-blue-800">{stats.total_documents}</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
-                    <span className="text-green-700 font-medium">Active Procedures</span>
-                    <span className="text-xl font-bold text-green-800">{stats.active_procedures}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border border-purple-200">
-                    <span className="text-purple-700 font-medium">This Week</span>
-                    <span className="text-xl font-bold text-purple-800">{stats.this_week}</span>
-                  </div>
+                  {stats.by_doc_type?.procedure && (
+                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
+                      <span className="text-green-700 font-medium">Procedures</span>
+                      <span className="text-xl font-bold text-green-800">{stats.by_doc_type.procedure}</span>
+                    </div>
+                  )}
+                  {stats.recent_activity && Object.keys(stats.recent_activity).length > 0 && (
+                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border border-purple-200">
+                      <span className="text-purple-700 font-medium">Recent Activity</span>
+                      <span className="text-xl font-bold text-purple-800">
+                        {Object.values(stats.recent_activity).reduce((a, b) => a + b, 0)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center p-6">

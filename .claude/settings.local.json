@@ -10,7 +10,18 @@
       "Bash(git push:*)",
       "Bash(git remote add:*)",
       "Bash(rm:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(npm install:*)",
+      "Bash(npx openapi-typescript:*)",
+      "Bash(npm run build:*)",
+      "Bash(mkdir:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm start)",
+      "Bash(PORT=3001 npm start)",
+      "Bash(grep:*)",
+      "Bash(PORT=3002 npm start)",
+      "WebFetch(domain:localhost)",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "ask": []

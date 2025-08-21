@@ -1,8 +1,38 @@
 # Policy Radar Frontend
 
-React-based dashboard for Policy Radar platform.
+Type-safe React dashboard for Policy Radar platform with TanStack Query integration.
 
-Updated: 2025-08-19
+**Features:**
+- ✅ **Type-safe API client** generated from OpenAPI schema
+- ✅ **TanStack Query** for caching, loading states, and error handling  
+- ✅ **Loading skeletons** and empty states for better UX
+- ✅ **Real-time data** with optimistic updates
+- ✅ **Comprehensive error handling** with retry logic
+
+Updated: 2025-08-20
+
+## 📚 API Documentation
+
+- **Live API Docs**: [https://policyradar-backend-production.up.railway.app/docs](https://policyradar-backend-production.up.railway.app/docs)
+- **OpenAPI Schema**: [https://policyradar-backend-production.up.railway.app/openapi.json](https://policyradar-backend-production.up.railway.app/openapi.json)
+
+### Type Generation
+
+TypeScript types are automatically generated from the backend OpenAPI schema:
+
+```bash
+# Generate types from production API
+npm run generate-types
+
+# Generate types from local development API  
+npm run generate-types:local
+```
+
+Types are generated into `src/types/api-generated.ts` and provide full type safety for:
+- Request/response schemas
+- Query parameters
+- Error responses
+- API endpoints
 
 ## Deploy to Railway
 
