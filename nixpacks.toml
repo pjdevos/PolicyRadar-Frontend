@@ -11,7 +11,7 @@ providers = ["node"]
   nixPkgs = ["nodejs-18_x", "npm-9_x"]
 
 [phases.install]
-  cmds = ["npm ci --only=production --no-optional --prefer-offline"]
+  cmds = ["npm ci --omit=dev --omit=optional --prefer-offline"]
 
 [phases.build]
   cmds = ["npm run build"]
