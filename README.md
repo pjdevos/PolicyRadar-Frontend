@@ -42,7 +42,7 @@ Types are generated into `src/types/api-generated.ts` and provide full type safe
 4. Set root directory to `/frontend`
 5. Add environment variables:
    ```
-   REACT_APP_API_BASE_URL=https://web-production-c466.up.railway.app/api
+   REACT_APP_API_URL=https://web-production-c466.up.railway.app/api
    REACT_APP_APP_NAME=Policy Radar
    REACT_APP_VERSION=1.0.0
    REACT_APP_ENVIRONMENT=production

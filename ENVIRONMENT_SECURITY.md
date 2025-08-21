@@ -13,7 +13,7 @@ Use `REACT_APP_*` prefixed variables **ONLY** for:
 ### Public Configuration
 ```bash
 # ✅ SAFE - Public API endpoints
-REACT_APP_API_BASE_URL=https://api.example.com
+REACT_APP_API_URL=https://api.example.com
 
 # ✅ SAFE - Feature toggles
 REACT_APP_RAG_ENABLED=true
@@ -39,7 +39,7 @@ All frontend environment variables are:
 // Automatic validation in src/config/env.ts
 const config = {
   api: {
-    baseUrl: getEnvVarRequired('REACT_APP_API_BASE_URL'), // Required
+    baseUrl: getEnvVarRequired('REACT_APP_API_URL'), // Required
     timeout: getEnvVarNumber('REACT_APP_API_TIMEOUT', 30000), // With default
   },
   features: {
@@ -163,11 +163,11 @@ cat .env.production | grep -E "(key|secret|password|token)"
 ### 1. Environment Separation
 ```bash
 # Development
-REACT_APP_API_BASE_URL=http://localhost:8000/api
+REACT_APP_API_URL=http://localhost:8000/api
 REACT_APP_DEBUG_MODE=true
 
 # Production
-REACT_APP_API_BASE_URL=https://api.policyradar.com/api
+REACT_APP_API_URL=https://api.policyradar.com/api
 REACT_APP_DEBUG_MODE=false
 ```
 
