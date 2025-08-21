@@ -140,7 +140,7 @@ async function apiRequest<T>(
 export const apiClient = {
   // Health checks
   health: (): Promise<HealthResponse> => 
-    apiRequest<HealthResponse>('/health'),
+    apiRequest<HealthResponse>('../health'),
     
   apiHealth: (): Promise<ApiHealthResponse> => 
     apiRequest<ApiHealthResponse>('/health'),
