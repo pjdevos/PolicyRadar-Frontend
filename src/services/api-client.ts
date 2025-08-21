@@ -64,8 +64,7 @@ export interface GetSourcesResponse {
 }
 
 // Health check types
-export type HealthResponse = paths['/health']['get']['responses']['200']['content']['application/json'];
-export type ApiHealthResponse = paths['/api/health']['get']['responses']['200']['content']['application/json'];
+export type HealthResponse = paths['/api/health']['get']['responses']['200']['content']['application/json'];
 
 // Ingest operations types (if needed)
 export type IngestRequest = paths['/api/ingest']['post']['requestBody']['content']['application/json'];
@@ -138,12 +137,9 @@ async function apiRequest<T>(
 
 // API client functions with full type safety
 export const apiClient = {
-  // Health checks
+  // Health check
   health: (): Promise<HealthResponse> => 
-    apiRequest<HealthResponse>('../health'),
-    
-  apiHealth: (): Promise<ApiHealthResponse> => 
-    apiRequest<ApiHealthResponse>('/health'),
+    apiRequest<HealthResponse>('/health'),
 
   // Documents
   getDocuments: (params: GetDocumentsParams = {}): Promise<GetDocumentsResponse> => {

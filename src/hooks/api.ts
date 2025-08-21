@@ -14,13 +14,11 @@ import type {
   GetTopicsResponse,
   GetSourcesResponse,
   HealthResponse,
-  ApiHealthResponse,
 } from '../services/api-client';
 
 // Query keys for consistent caching
 export const queryKeys = {
   health: ['health'] as const,
-  apiHealth: ['api', 'health'] as const,
   documents: (params: GetDocumentsParams = {}) => ['documents', params] as const,
   stats: ['stats'] as const,
   topics: ['topics'] as const,
@@ -38,14 +36,6 @@ export const useHealth = () => {
   });
 };
 
-export const useApiHealth = () => {
-  return useQuery<ApiHealthResponse, Error>({
-    queryKey: queryKeys.apiHealth,
-    queryFn: apiClient.apiHealth,
-    staleTime: 30000, // 30 seconds
-    retry: 2,
-  });
-};
 
 // Documents hook with advanced caching
 export const useDocuments = (params: GetDocumentsParams = {}) => {

@@ -23,7 +23,9 @@
       "WebFetch(domain:localhost)",
       "Bash(mv:*)",
       "Bash(git fetch:*)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(git pull:*)",
+      "Bash(npx serve:*)"
     ],
     "deny": [],
     "ask": []
