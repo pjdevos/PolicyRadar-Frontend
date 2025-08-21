@@ -17,4 +17,4 @@ providers = ["node"]
   cmds = ["npm run build"]
 
 [start]
-  cmd = "npx serve -s build -l $PORT --host 0.0.0.0"  # Bind to all interfaces
+  cmd = "npx serve -s build -p $PORT"
