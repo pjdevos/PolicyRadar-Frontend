@@ -22,7 +22,8 @@
       "Bash(PORT=3002 npm start)",
       "WebFetch(domain:localhost)",
       "Bash(mv:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ],
     "deny": [],
     "ask": []

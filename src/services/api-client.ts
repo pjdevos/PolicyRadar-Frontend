@@ -143,7 +143,7 @@ export const apiClient = {
     apiRequest<HealthResponse>('/health'),
     
   apiHealth: (): Promise<ApiHealthResponse> => 
-    apiRequest<ApiHealthResponse>('/api/health'),
+    apiRequest<ApiHealthResponse>('/health'),
 
   // Documents
   getDocuments: (params: GetDocumentsParams = {}): Promise<GetDocumentsResponse> => {
@@ -170,32 +170,32 @@ export const apiClient = {
     }
 
     const query = searchParams.toString();
-    const endpoint = `/api/documents${query ? `?${query}` : ''}`;
+    const endpoint = `/documents${query ? `?${query}` : ''}`;
     
     return apiRequest<GetDocumentsResponse>(endpoint);
   },
 
   // Stats
   getStats: (): Promise<GetStatsResponse> =>
-    apiRequest<GetStatsResponse>('/api/stats'),
+    apiRequest<GetStatsResponse>('/stats'),
 
   // RAG
   queryRAG: (request: RAGQueryRequest): Promise<RAGQueryResponse> =>
-    apiRequest<RAGQueryResponse>('/api/rag/query', {
+    apiRequest<RAGQueryResponse>('/rag/query', {
       method: 'POST',
       body: JSON.stringify(request),
     }),
 
   // Topics and Sources
   getTopics: (): Promise<GetTopicsResponse> =>
-    apiRequest<GetTopicsResponse>('/api/topics'),
+    apiRequest<GetTopicsResponse>('/topics'),
     
   getSources: (): Promise<GetSourcesResponse> =>
-    apiRequest<GetSourcesResponse>('/api/sources'),
+    apiRequest<GetSourcesResponse>('/sources'),
 
   // Ingest (admin operation)
   triggerIngest: (request: IngestRequest): Promise<any> =>
-    apiRequest<any>('/api/ingest', {
+    apiRequest<any>('/ingest', {
       method: 'POST',
       body: JSON.stringify(request),
     }),

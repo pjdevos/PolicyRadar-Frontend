@@ -2,7 +2,7 @@ providers = ["node"]
 
 [variables]
   NODE_ENV = "production"
-  REACT_APP_API_BASE_URL = "https://policyradar-backend-production.up.railway.app/api"
+  REACT_APP_API_URL = "https://policyradar-backend-production.up.railway.app/api"
   NODE_OPTIONS = "--max-old-space-size=2048"  # Increased memory
   # Removed NPM_CONFIG_MAXSOCKETS to use default
   NIXPACKS_NODE_VERSION = "18"
