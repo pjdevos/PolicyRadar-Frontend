@@ -11,10 +11,10 @@ providers = ["node"]
   nixPkgs = ["nodejs-18_x", "npm-9_x"]
 
 [phases.install]
-  cmds = ["cd frontend && npm ci --only=production --no-optional --prefer-offline"]
+  cmds = ["npm ci --only=production --no-optional --prefer-offline"]
 
 [phases.build]
-  cmds = ["cd frontend && npm run build"]
+  cmds = ["npm run build"]
 
 [start]
-  cmd = "cd frontend && npx serve -s build -l $PORT --host 0.0.0.0"  # Bind to all interfaces
+  cmd = "npx serve -s build -l $PORT --host 0.0.0.0"  # Bind to all interfaces

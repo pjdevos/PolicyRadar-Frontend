@@ -21,7 +21,8 @@
       "Bash(grep:*)",
       "Bash(PORT=3002 npm start)",
       "WebFetch(domain:localhost)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(git fetch:*)"
     ],
     "deny": [],
     "ask": []
