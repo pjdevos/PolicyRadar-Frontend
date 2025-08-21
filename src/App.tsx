@@ -365,8 +365,8 @@ const PolicyRadarDashboard = () => {
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg">
                     <RadarLogo 
-                      size={20} 
-                      animationType="ping" 
+                      size={128} 
+                      animationType="sweep" 
                       color="white" 
                       showPulseRings={true}
                     />

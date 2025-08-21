@@ -16,6 +16,18 @@
   50% { opacity: 0.7; }
 }
 
+/* Radar sweep animation */
+@keyframes radar-spin {
+  to {
+    transform: rotate(720deg); /* 2 rondes */
+  }
+}
+
+.animate-radar-sweep {
+  animation: radar-spin 10s linear 2 forwards; 
+  /* 10s totaal, 2 iteraties, eindpositie behouden */
+}
+
 /* Animation classes */
 .animate-fadeIn {
   animation: fadeIn 0.5s ease-out forwards;
