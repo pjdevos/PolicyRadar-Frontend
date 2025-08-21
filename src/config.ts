@@ -4,7 +4,7 @@
 
 // API configuration
 export const api = {
-  baseUrl: process.env.REACT_APP_API_URL || 'https://policyradar-backend-production.up.railway.app',
+  baseUrl: process.env.REACT_APP_API_URL || 'https://policyradar-backend-production.up.railway.app/api',
   timeout: 10000, // 10 seconds
   retryAttempts: 2,
   retryDelay: 1000, // 1 second
