@@ -17,4 +17,4 @@ providers = ["node"]
   cmds = ["npm run build"]
 
 [start]
-  cmd = "npx serve -s build -p $PORT"
+  cmd = "npx serve -s build -p $PORT --host 0.0.0.0"
