@@ -103,8 +103,31 @@ async function apiRequest<T>(
       clearTimeout(timeoutId);
       
       if (!response.ok) {
+        // Handle specific error cases with user-friendly messages
+        if (response.status === 502) {
+          throw new Error(
+            'Backend service is temporarily unavailable. This could be due to:\n' +
+            '• Backend deployment in progress\n' + 
+            '• Service maintenance\n' +
+            '• Network connectivity issues\n\n' +
+            'Please try again in a few moments.'
+          );
+        }
+        
+        if (response.status === 503 || response.status === 504) {
+          throw new Error(
+            'Backend service is currently overloaded or timing out. Please try again in a moment.'
+          );
+        }
+        
+        if (response.status >= 500) {
+          throw new Error(
+            'Backend server error occurred. The development team has been notified. Please try again later.'
+          );
+        }
+        
         const error: ApiError = await response.json().catch(() => ({
-          error: 'Network error',
+          error: 'API request failed',
           message: `HTTP ${response.status}: ${response.statusText}`
         }));
         throw new Error(error.message || error.error);
@@ -125,14 +148,35 @@ async function apiRequest<T>(
         continue;
       }
       
+      // Provide user-friendly error messages for network issues
+      if (isNetworkError) {
+        throw new Error(
+          'Cannot connect to the backend service. This could be due to:\n' +
+          '• No internet connection\n' +
+          '• Backend service is offline\n' +
+          '• Incorrect API URL configuration\n' +
+          `• Firewall blocking access to ${apiConfig.baseUrl}\n\n` +
+          'Please check your connection and try again.'
+        );
+      }
+      
+      if (isAbortError) {
+        throw new Error(
+          'Request timed out. The backend service may be slow or unavailable. Please try again.'
+        );
+      }
+      
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('An unexpected error occurred');
+      throw new Error('An unexpected error occurred while connecting to the backend service.');
     }
   }
   
-  throw new Error('Max retries exceeded');
+  throw new Error(
+    'All connection attempts failed. The backend service appears to be unavailable. ' +
+    'Please try again later or contact support if the issue persists.'
+  );
 }
 
 // API client functions with full type safety
