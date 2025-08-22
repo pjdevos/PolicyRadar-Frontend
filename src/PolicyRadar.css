@@ -28,6 +28,7 @@
   /* 10s totaal, 2 iteraties, eindpositie behouden */
 }
 
+
 /* Animation classes */
 .animate-fadeIn {
   animation: fadeIn 0.5s ease-out forwards;
