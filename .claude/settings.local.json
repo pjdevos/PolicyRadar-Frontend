@@ -25,9 +25,17 @@
       "Bash(git fetch:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(git pull:*)",
-      "Bash(npx serve:*)"
+      "Bash(npx serve:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:policy-radar-frontend.vercel.app)",
+      "WebFetch(domain:policyradar-backend-production.up.railway.app)",
+      "WebFetch(domain:policy-radar-frontend-jt8cxxl2d-pjdevos-projects-979bae0e.vercel.app)",
+      "Bash(CI=false npm run build)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\Users\\pjdev\\PolicyRadar\\PolicyRadar-Backend"
+    ]
   }
 }

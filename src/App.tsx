@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  Search, Filter, Calendar, Bell, ExternalLink, FileText, Users, Clock,
-  ChevronDown, AlertCircle, CheckCircle, XCircle, TrendingUp, BarChart3,
+  Search, Filter, Calendar, ExternalLink, FileText, Users, Clock,
+  ChevronDown, AlertCircle, CheckCircle, XCircle, TrendingUp,
   Zap, ArrowRight, Sparkles
 } from 'lucide-react';
 import { apiClient } from './services/api-client';
-import { Document as PolicyDocument, GetStatsResponse as StatsResponse } from './services/api-client';
+import { Document as PolicyDocument } from './services/api-client';
 import RadarLogo from './components/RadarLogo';
 import './PolicyRadar.css';
 
@@ -21,18 +21,21 @@ const PolicyRadarDashboard = () => {
   const [dateRange, setDateRange] = useState('30');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [chatQuery, setChatQuery] = useState('');
-  const [chatResponse, setChatResponse] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  // Chat functionality temporarily disabled
+  // const [chatQuery, setChatQuery] = useState('');
+  // const [chatResponse, setChatResponse] = useState('');
+  // const [isLoading, setIsLoading] = useState(false);
 
   // API state
   const [documents, setDocuments] = useState<PolicyDocument[]>([]);
-  const [stats, setStats] = useState<StatsResponse | null>(null);
+  // Stats temporarily disabled
+  // const [stats, setStats] = useState<StatsResponse | null>(null);
   const [allTopics, setAllTopics] = useState<string[]>([]);
   const [allSources, setAllSources] = useState<string[]>([]);
   const [allDocTypes, setAllDocTypes] = useState<string[]>([]);
   const [documentsLoading, setDocumentsLoading] = useState(true);
-  const [statsLoading, setStatsLoading] = useState(true);
+  // Stats temporarily disabled
+  // const [statsLoading, setStatsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Real-time updates
@@ -40,7 +43,8 @@ const PolicyRadarDashboard = () => {
 
   // Simple concurrency guards (prevents overlapping calls)
   const [docsBusy, setDocsBusy] = useState(false);
-  const [statsBusy, setStatsBusy] = useState(false);
+  // Stats temporarily disabled
+  // const [statsBusy, setStatsBusy] = useState(false);
 
   // ---- Data loaders
   const loadDocuments = useCallback(async () => {
@@ -66,27 +70,28 @@ const PolicyRadarDashboard = () => {
     }
   }, [selectedTopic, selectedSource, selectedDocType, dateRange, searchQuery, docsBusy]);
 
-  const loadStats = useCallback(async () => {
-    if (statsBusy) return;
-    setStatsBusy(true);
-    try {
-      setStatsLoading(true);
-      const response = await apiClient.getStats();
-      setStats(response);
-    } catch (err) {
-      console.error('Failed to load stats:', err);
-    } finally {
-      setStatsLoading(false);
-      setStatsBusy(false);
-    }
-  }, [statsBusy]);
+  // Stats temporarily disabled
+  // const loadStats = useCallback(async () => {
+  //   if (statsBusy) return;
+  //   setStatsBusy(true);
+  //   try {
+  //     setStatsLoading(true);
+  //     const response = await apiClient.getStats();
+  //     setStats(response);
+  //   } catch (err) {
+  //     console.error('Failed to load stats:', err);
+  //   } finally {
+  //     setStatsLoading(false);
+  //     setStatsBusy(false);
+  //   }
+  // }, [statsBusy]);
 
   // ---- Effects
 
   // A) Initial load (once)
   useEffect(() => {
     loadDocuments();
-    loadStats();
+    // loadStats(); // Temporarily disabled
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // B) Polling (refires on filter changes so interval uses fresh params)
@@ -94,10 +99,10 @@ const PolicyRadarDashboard = () => {
     const interval = setInterval(() => {
       setLastUpdate(new Date());
       loadDocuments();
-      loadStats();
+      // loadStats(); // Temporarily disabled
     }, 60_000);
     return () => clearInterval(interval);
-  }, [selectedTopic, selectedSource, selectedDocType, dateRange, searchQuery, loadDocuments, loadStats]);
+  }, [selectedTopic, selectedSource, selectedDocType, dateRange, searchQuery, loadDocuments]);
 
   // C) Reload on filter updates (immediate)
   useEffect(() => {
@@ -201,25 +206,25 @@ const PolicyRadarDashboard = () => {
     new Intl.DateTimeFormat('nl-BE', { year: 'numeric', month: 'short', day: '2-digit' })
       .format(new Date(d));
 
-  // Real AI chat using RAG API
-  const handleChatSubmit = async () => {
-    if (!chatQuery.trim()) return;
-    setIsLoading(true);
-    try {
-      const response = await apiClient.queryRAG({
-        query: chatQuery,
-        source_filter: selectedSource !== 'all' ? selectedSource : null,
-        doc_type_filter: selectedDocType !== 'all' ? selectedDocType : null,
-        k: 8
-      });
-      setChatResponse(response.answer);
-    } catch (err) {
-      setChatResponse('Sorry, I encountered an error processing your question. Please try again.');
-      console.error('RAG query failed:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Chat functionality temporarily disabled
+  // const handleChatSubmit = async () => {
+  //   if (!chatQuery.trim()) return;
+  //   setIsLoading(true);
+  //   try {
+  //     const response = await apiClient.queryRAG({
+  //       query: chatQuery,
+  //       source_filter: selectedSource !== 'all' ? selectedSource : null,
+  //       doc_type_filter: selectedDocType !== 'all' ? selectedDocType : null,
+  //       k: 8
+  //     });
+  //     setChatResponse(response.answer);
+  //   } catch (err) {
+  //     setChatResponse('Sorry, I encountered an error processing your question. Please try again.');
+  //     console.error('RAG query failed:', err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
 
   return (
@@ -244,8 +249,8 @@ const PolicyRadarDashboard = () => {
         </div>
 
         <div className="pr-actions">
-          <a className="pr-btn" href="#">New Alert</a>
-          <a className="pr-btn" href="#">Export</a>
+          <button className="pr-btn">New Alert</button>
+          <button className="pr-btn">Export</button>
         </div>
       </header>
 
@@ -253,12 +258,12 @@ const PolicyRadarDashboard = () => {
         <aside className="pr-aside">
           <nav>
             <ul className="pr-menu">
-              <li><a className="active" href="#">Overview <span>›</span></a></li>
-              <li><a href="#">EU Dossiers <span>›</span></a></li>
-              <li><a href="#">Parliament & Council <span>›</span></a></li>
-              <li><a href="#">Consultations <span>›</span></a></li>
-              <li><a href="#">Press & Tweets <span>›</span></a></li>
-              <li><a href="#">Exports <span>›</span></a></li>
+              <li><button className="active">Overview <span>›</span></button></li>
+              <li><button>EU Dossiers <span>›</span></button></li>
+              <li><button>Parliament & Council <span>›</span></button></li>
+              <li><button>Consultations <span>›</span></button></li>
+              <li><button>Press & Tweets <span>›</span></button></li>
+              <li><button>Exports <span>›</span></button></li>
             </ul>
           </nav>
         </aside>

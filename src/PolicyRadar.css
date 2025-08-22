@@ -1,5 +1,24 @@
 /* Custom CSS for Policy Radar Dashboard */
 
+/* Button styling for navigation */
+.pr-menu button {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: inherit;
+  width: 100%;
+}
+
+.pr-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
 /* Smooth animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }

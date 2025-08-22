@@ -9,5 +9,8 @@
     "restartPolicyMaxRetries": 10,
     "healthcheckPath": "/",
     "healthcheckTimeout": 10
+  },
+  "environments": {
+    "CI": "false"
   }
 }
