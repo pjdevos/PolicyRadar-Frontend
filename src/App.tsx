@@ -223,46 +223,50 @@ const PolicyRadarDashboard = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-200/60 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="pr-brand">
-                <RadarLogo size={32} startDeg={-90} />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Policy Radar ⚡</h1>
-                <span className="text-xs text-gray-500 font-medium">Brussels Public Affairs Platform</span>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 px-3 py-1.5 bg-green-50 rounded-full border border-green-200">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-green-700 font-medium" aria-live="polite">
-                  Updated {new Intl.DateTimeFormat('nl-BE', { hour: '2-digit', minute: '2-digit' }).format(lastUpdate)}
-                </span>
-              </div>
-              <div className="relative">
-                <Bell className="w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-                  <span className="text-[10px] text-white font-bold">3</span>
-                </div>
-              </div>
-            </div>
-          </div>
+    <>
+      {/* Header with Policy Radar CSS classes */}
+      <header className="pr-topbar">
+        <div className="pr-brand">
+          <RadarLogo size={56} startDeg={-90} />
+          <h1>Policy Radar</h1>
+        </div>
+
+        <div className="pr-searchbar">
+          <span>🔎</span>
+          <input 
+            placeholder="Search policies, regulations…" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <span className="pr-badge">
+            Updated {new Intl.DateTimeFormat('nl-BE', { hour: '2-digit', minute: '2-digit' }).format(lastUpdate)}
+          </span>
+        </div>
+
+        <div className="pr-actions">
+          <a className="pr-btn" href="#">New Alert</a>
+          <a className="pr-btn" href="#">Export</a>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6 lg:space-y-8" aria-busy={documentsLoading ? 'true' : 'false'}>
+      <div className="pr-container">
+        <aside className="pr-aside">
+          <nav>
+            <ul className="pr-menu">
+              <li><a className="active" href="#">Overview <span>›</span></a></li>
+              <li><a href="#">EU Dossiers <span>›</span></a></li>
+              <li><a href="#">Parliament & Council <span>›</span></a></li>
+              <li><a href="#">Consultations <span>›</span></a></li>
+              <li><a href="#">Press & Tweets <span>›</span></a></li>
+              <li><a href="#">Exports <span>›</span></a></li>
+            </ul>
+          </nav>
+        </aside>
+        
+        <main className="pr-main" aria-busy={documentsLoading ? 'true' : 'false'}>
             
             {/* Search and Filters */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+            <section className="pr-panel">
               <div className="space-y-6">
                 {/* Search Bar */}
                 <div className="relative group">
@@ -355,7 +359,7 @@ const PolicyRadarDashboard = () => {
             </div>
 
             {/* Results Summary */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+            <section className="pr-panel">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="pr-brand">
@@ -523,180 +527,13 @@ const PolicyRadarDashboard = () => {
               </div>
             )}
             </div>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6 lg:space-y-8">
-            
-            {/* AI Chat Interface */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg shadow-sm">
-                  <Sparkles className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Ask Policy Radar</h3>
-                  <p className="text-xs text-gray-500">AI-powered policy insights</p>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="relative">
-                  <textarea
-                    value={chatQuery}
-                    onChange={(e) => setChatQuery(e.target.value)}
-                    placeholder="Ask about policies, regulations, or trends..."
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none bg-gray-50/80 focus:bg-white transition-all duration-200"
-                    rows={3}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                        e.preventDefault();
-                        handleChatSubmit();
-                      }
-                    }}
-                  />
-                  <div className="absolute bottom-3 right-3 text-xs text-gray-400">
-                    Ctrl+Enter to send
-                  </div>
-                </div>
-                <button
-                  onClick={handleChatSubmit}
-                  disabled={isLoading || !chatQuery.trim()}
-                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 px-4 rounded-xl hover:from-blue-600 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 font-medium shadow-lg hover:shadow-xl transition-all duration-200"
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                      <span>Processing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>Ask Question</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {chatResponse && (
-                <div className="mt-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-                  <div className="flex items-center space-x-2 mb-3">
-                    <Sparkles className="w-4 h-4 text-blue-600" />
-                    <h4 className="font-semibold text-blue-900">AI Response:</h4>
-                  </div>
-                  <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                    {chatResponse}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Quick Stats */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg shadow-sm">
-                  <BarChart3 className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Quick Stats</h3>
-                  <p className="text-xs text-gray-500">Real-time metrics</p>
-                </div>
-              </div>
-              {statsLoading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg animate-pulse">
-                      <div className="h-4 bg-gray-200 rounded w-24"></div>
-                      <div className="h-6 bg-gray-200 rounded w-8"></div>
-                    </div>
-                  ))}
-                </div>
-              ) : stats ? (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                    <span className="text-blue-700 font-medium">Total Documents</span>
-                    <span className="text-xl font-bold text-blue-800">{stats.total_documents}</span>
-                  </div>
-                  {stats.by_doc_type?.procedure && (
-                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
-                      <span className="text-green-700 font-medium">Procedures</span>
-                      <span className="text-xl font-bold text-green-800">{stats.by_doc_type.procedure}</span>
-                    </div>
-                  )}
-                  {stats.recent_activity && Object.keys(stats.recent_activity).length > 0 && (
-                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border border-purple-200">
-                      <span className="text-purple-700 font-medium">Recent Activity</span>
-                      <span className="text-xl font-bold text-purple-800">
-                        {Object.values(stats.recent_activity).reduce((a, b) => a + b, 0)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center p-6">
-                  <AlertCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <div className="text-gray-500 text-sm">Failed to load stats</div>
-                </div>
-              )}
-            </div>
-
-            {/* Top Topics */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="p-2 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg shadow-sm">
-                  <TrendingUp className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Trending Topics</h3>
-                  <p className="text-xs text-gray-500">Most active policy areas</p>
-                </div>
-              </div>
-              <div className="space-y-3">
-                {allTopics.slice(0, 8).map((topic, index) => {
-                  const count = documents.filter(item => 
-                    item.topics.includes(topic)
-                  ).length;
-                  const isSelected = selectedTopic === topic;
-                  return (
-                    <button
-                      key={topic}
-                      onClick={() => setSelectedTopic(topic)}
-                      className={`w-full flex justify-between items-center text-left p-3 rounded-lg transition-all duration-200 group ${
-                        isSelected 
-                          ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg' 
-                          : 'hover:bg-gray-50 hover:shadow-sm'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                          isSelected 
-                            ? 'bg-white/20 text-white' 
-                            : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600'
-                        }`}>
-                          #{index + 1}
-                        </div>
-                        <span className={`text-sm font-medium ${
-                          isSelected ? 'text-white' : 'text-gray-700'
-                        }`}>
-                          {topic}
-                        </span>
-                      </div>
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
-                        isSelected 
-                          ? 'bg-white/20 text-white' 
-                          : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'
-                      }`}>
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
+        </main>
       </div>
-    </div>
+      
+      <footer className="pr-footer">
+        © 2025 Policy Radar — Live policy tracking with 12-star radar logo
+      </footer>
+    </>
   );
 };
 
