@@ -356,7 +356,7 @@ const PolicyRadarDashboard = () => {
                   </div>
                 )}
               </div>
-            </div>
+            </section>
 
             {/* Results Summary */}
             <section className="pr-panel">
@@ -399,7 +399,7 @@ const PolicyRadarDashboard = () => {
                   </div>
                 </div>
               )}
-            </div>
+            </section>
 
             {/* Activity Feed */}
             <div className="space-y-4 lg:space-y-6">

@@ -1,10 +1,8 @@
-// tailwind.config.js
+// tailwind.config.js - Disabled in favor of Policy Radar CSS
 module.exports = {
+  content: [], // Empty content to disable Tailwind
+  corePlugins: false, // Disable all Tailwind core plugins
   theme: {
-    extend: {
-      animation: {
-        'spin-slow': 'spin 5s linear infinite', // 5s per ronde
-      },
-    },
+    extend: {},
   },
 };
