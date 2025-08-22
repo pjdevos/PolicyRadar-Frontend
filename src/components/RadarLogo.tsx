@@ -14,6 +14,7 @@ function starPoints(cx: number, cy: number, r: number) {
   return points;
 }
 
+// Fixed size RadarLogo with slow spin animation
 export default function RadarLogo() {
   return (
     <div className="relative w-64 h-64">
