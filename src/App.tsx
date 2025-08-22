@@ -229,8 +229,8 @@ const PolicyRadarDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg shadow-sm">
-                <RadarLogo size={24} spinDuration={1.8} rotations={1} showRim={false} />
+              <div className="pr-brand">
+                <RadarLogo size={32} startDeg={-90} />
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Policy Radar ⚡</h1>
@@ -358,8 +358,8 @@ const PolicyRadarDashboard = () => {
             <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg">
-                    <RadarLogo size={128} spinDuration={2.4} rotations={2} beamWidthDeg={30} />
+                  <div className="pr-brand">
+                    <RadarLogo size={96} startDeg={-90} />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900">

@@ -1,0 +1,149 @@
+/* Policy Radar — Base theme tokens */
+:root{
+  --bg: #0b1220;
+  --panel: #11182a;
+  --panel-2: #0e1526;
+  --ink: #e8eefc;
+  --muted: #9bb0d3;
+  --accent: #4da3ff;
+  --accent-2: #7bc3ff;
+  --primary: #003399;
+  --ok: #2dd4bf;
+  --warn: #fbbf24;
+  --danger: #fb7185;
+  --radius: 16px;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+  --ring: 0 0 0 6px rgba(77,163,255,.12);
+}
+
+*{ box-sizing: border-box; }
+html, body{ height:100%; }
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 700px at 20% -10%, rgba(77,163,255,.06), transparent 60%),
+    radial-gradient(1000px 600px at 100% 0%, rgba(0,51,153,.28), transparent 50%),
+    var(--bg);
+  line-height:1.4;
+}
+
+/* Topbar */
+.pr-topbar{
+  position:sticky; top:0; z-index:30;
+  display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:1rem;
+  padding:.8rem 1.2rem;
+  background: rgba(10,16,30,.6);
+  backdrop-filter: blur(12px);
+  border-bottom:1px solid rgba(125,164,255,.15);
+}
+.pr-brand{ display:flex; align-items:center; gap:.9rem; min-width:0; }
+.pr-brand h1{ margin:0; font-size:1.08rem; font-weight:700; letter-spacing:.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.pr-searchbar{
+  display:flex; align-items:center; gap:.6rem; justify-self:center; width:min(720px, 90vw);
+  background:#0d1528; border:1px solid rgba(125,164,255,.18);
+  padding:.5rem .75rem; border-radius:12px; box-shadow: var(--ring);
+}
+.pr-searchbar input{ width:100%; border:0; outline:0; background:transparent; color:var(--ink); font-size:.95rem; }
+.pr-badge{ background:#122042; border:1px solid rgba(77,163,255,.35); padding:.15rem .45rem; border-radius:999px; font-size:.78rem; }
+
+.pr-actions{ display:flex; align-items:center; gap:.6rem; }
+.pr-btn{
+  display:inline-flex; align-items:center; gap:.5rem;
+  background: linear-gradient(180deg, #1a2a4d, #152342);
+  border:1px solid rgba(125,164,255,.25);
+  padding:.55rem .8rem; border-radius:12px; color:var(--ink); text-decoration:none;
+}
+.pr-btn:hover{ background: linear-gradient(180deg, #203059, #1a2a4d); }
+
+/* Layout */
+.pr-container{ display:grid; grid-template-columns:260px 1fr; gap:1.2rem; padding:1.2rem; }
+.pr-aside{
+  position:sticky; top:72px; align-self:start;
+  background: linear-gradient(180deg, var(--panel), #0e1628);
+  border:1px solid rgba(125,164,255,.18);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.pr-menu{ list-style:none; margin:0; padding:.4rem; }
+.pr-menu a{
+  display:flex; align-items:center; justify-content:space-between; gap:.8rem;
+  padding:.65rem .8rem; border-radius:12px; color:var(--ink); text-decoration:none;
+}
+.pr-menu a:hover{ background: rgba(77,163,255,.08); }
+.pr-menu a.active{ background: rgba(77,163,255,.14); border:1px solid rgba(125,164,255,.25); }
+
+.pr-main{ display:grid; gap:1.2rem; }
+.pr-panel{
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border:1px solid rgba(125,164,255,.18);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding:1rem 1.1rem;
+}
+
+/* KPIs */
+.pr-kpis{ display:grid; grid-template-columns:repeat(3, 1fr); gap:1rem; }
+.pr-kpi{ background:#0f1830; border:1px solid rgba(125,164,255,.22); border-radius:12px; padding:.9rem; }
+.pr-kpi .label{ color:var(--muted); font-size:.85rem; }
+.pr-kpi .value{ font-size:1.6rem; font-weight:800; color:var(--accent-2); }
+.pr-tags{ display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.5rem; }
+.pr-tag{ font-size:.78rem; padding:.15rem .45rem; border-radius:999px; border:1px solid rgba(125,164,255,.25); color:var(--muted); }
+
+/* Table */
+.pr-table{ width:100%; border-collapse:separate; border-spacing:0; }
+.pr-table thead th{ text-align:left; font-weight:600; color:var(--muted); padding:.6rem .5rem; }
+.pr-table tbody td{ padding:.65rem .5rem; border-top:1px solid rgba(125,164,255,.12); }
+.pr-table tbody tr:hover{ background: rgba(77,163,255,.06); }
+.pr-status{ font-weight:600; }
+.pr-status.new{ color: var(--accent-2); }
+.pr-status.consult{ color: var(--warn); }
+.pr-status.scheduled{ color: var(--ok); }
+
+/* Footer */
+.pr-footer{ text-align:center; color:var(--muted); padding:2rem 1rem; }
+
+/* Radar logo (CSS only for sweep; stars defined in SVG) */
+.pr-logo{
+  position:relative; width:56px; height:56px; border-radius:50%;
+  overflow:hidden; isolation:isolate; flex:0 0 auto;
+  box-shadow: var(--ring), 0 1px 0 rgba(255,255,255,.3) inset, 0 10px 24px rgba(0,0,0,.35);
+  background: radial-gradient(80% 80% at 45% 40%, #0c3a8a 0%, #003399 64%, #002a80 100%);
+}
+.pr-logo__rim{ position:absolute; inset:0; border-radius:50%; box-shadow:0 0 0 2px rgba(255,255,255,.65) inset; }
+.pr-logo__sweep, .pr-logo__sweep2{
+  position:absolute; inset:0; border-radius:50%;
+  background: conic-gradient(
+    from -90deg,
+    rgba(120,170,255,.55) 0deg,
+    rgba(77,163,255,.95) 10deg,
+    rgba(77,163,255,0) 25deg,
+    rgba(77,163,255,0) 360deg
+  );
+  filter: drop-shadow(0 0 8px rgba(77,163,255,.45));
+}
+/* Two spins then stop */
+@keyframes pr-spin{ to{ transform: rotate(360deg); } }
+.pr-logo__sweep{ animation: pr-spin 2.4s linear 1 forwards; }
+.pr-logo__sweep2{ animation: pr-spin 2.4s 2.4s linear 1 forwards; }
+
+/* Accessibility: stop motion for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .pr-logo__sweep, .pr-logo__sweep2{ animation:none; }
+}
+
+/* SVG within logo */
+.pr-logo svg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+
+/* Light theme variant (optional) */
+.theme-light{
+  --bg:#f5f7fb; --panel:#ffffff; --panel-2:#f9fbff; --ink:#1b2430; --muted:#6b7280;
+  --shadow: 0 10px 25px rgba(20,30,60,0.06);
+  --ring: 0 0 0 6px rgba(0,51,153,.12);
+}
+.theme-light body{ background: var(--bg); }
+.theme-light .pr-topbar{ background:#ffffffcc; border-bottom:1px solid rgba(0,0,0,0.06); }
+.theme-light .pr-kpi{ background:#f7f9ff; border-color:#e5ecff; }
+.theme-light .pr-table tbody tr:hover{ background:#f1f5ff; }
