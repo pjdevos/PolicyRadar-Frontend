@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import './styles/policy_radar.css';  // Global Policy Radar theme
 import './index.css';
 import App from './App';
 import { QueryProvider } from './providers/QueryProvider';
