@@ -2,14 +2,25 @@
 
 Type-safe React dashboard for Policy Radar platform with TanStack Query integration.
 
-**Features:**
+## 🚀 **Live Application**
+
+**✅ Production:** [https://policy-radar-frontend.vercel.app](https://policy-radar-frontend.vercel.app)
+
+---
+
+## **Features**
 - ✅ **Type-safe API client** generated from OpenAPI schema
 - ✅ **TanStack Query** for caching, loading states, and error handling  
 - ✅ **Loading skeletons** and empty states for better UX
-- ✅ **Real-time data** with optimistic updates
-- ✅ **Comprehensive error handling** with retry logic
+- ✅ **Real-time data** with optimistic updates and 60s polling
+- ✅ **Comprehensive error handling** with retry logic and user-friendly messages
+- ✅ **Dutch date formatting** (nl-BE locale)
+- ✅ **Clickable topic filters** for enhanced UX
+- ✅ **Animated radar logo** with sweep effect
 
-Updated: 2025-08-20
+Updated: 2025-08-22
+
+---
 
 ## 📚 API Documentation
 
@@ -30,65 +41,141 @@ npm run generate-types:local
 
 Types are generated into `src/types/api-generated.ts` and provide full type safety for:
 - Request/response schemas
-- Query parameters
+- Query parameters  
 - Error responses
 - API endpoints
 
-## Deploy to Railway
+---
+
+## 🚀 Deployment
+
+### Primary: Vercel (Recommended)
+
+Vercel automatically deploys from the `main` branch with optimized React builds.
+
+**Live URL:** [https://policy-radar-frontend.vercel.app](https://policy-radar-frontend.vercel.app)
+
+**Environment Variables:**
+- `REACT_APP_API_URL`: `https://policyradar-backend-production.up.railway.app/api`
+
+### Alternative: Railway
+
+For manual Railway deployment:
 
 1. Go to [Railway Dashboard](https://railway.app/dashboard)
-2. Click "New Project" → "Deploy from GitHub repo"
-3. Select `pjdevos/PolicyDashboard` repository
-4. Set root directory to `/frontend`
-5. Add environment variables:
+2. Click "New Project" → "Deploy from GitHub repo"  
+3. Select `pjdevos/PolicyRadar-Frontend` repository
+4. Add environment variables:
    ```
-   REACT_APP_API_URL=https://web-production-c466.up.railway.app/api
+   REACT_APP_API_URL=https://policyradar-backend-production.up.railway.app/api
    REACT_APP_APP_NAME=Policy Radar
    REACT_APP_VERSION=1.0.0
    REACT_APP_ENVIRONMENT=production
    ```
 
-## Create React App
+---
 
-## Available Scripts
+## 🛠️ Development
 
-In the project directory, you can run:
+### Prerequisites
+- Node.js 18+ 
+- npm 10+
 
-### `npm start`
+### Setup
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```bash
+# Install dependencies
+npm install
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+# Start development server
+npm start
+```
 
-### `npm test`
+Open [http://localhost:3000](http://localhost:3000) to view in browser.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Available Scripts
 
-### `npm run build`
+- **`npm start`** - Development server with hot reload
+- **`npm test`** - Interactive test runner
+- **`npm run build`** - Production build 
+- **`npm run generate-types`** - Generate TypeScript types from API
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Environment Configuration
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Create `.env.local` for local development:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+# Local development
+REACT_APP_API_URL=http://localhost:8000/api
+REACT_APP_ENVIRONMENT=development
+REACT_APP_DEBUG_MODE=true
+```
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## 🏗️ Architecture
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Tech Stack
+- **React 18** with TypeScript
+- **TanStack Query** for server state management
+- **Lucide React** for icons
+- **Tailwind CSS** for styling
+- **React Error Boundary** for error handling
+- **React Router DOM** for navigation
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Key Components
+- `App.tsx` - Main application with direct API calls and polling
+- `RadarLogo.tsx` - Animated radar component with stars
+- `api-client.ts` - Type-safe API client with error handling
+- `config.ts` - Environment configuration management
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### API Integration
+- Direct API calls with built-in retry logic
+- Real-time polling every 60 seconds
+- Concurrency guards to prevent overlapping requests
+- User-friendly error messages for network issues
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🔧 Configuration
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REACT_APP_API_URL` | Backend API base URL | Production Railway URL |
+| `REACT_APP_ENVIRONMENT` | Environment identifier | `production` |
+| `REACT_APP_DEBUG_MODE` | Enable debug logging | `false` |
+
+### Build Configuration
+
+- **TypeScript**: Strict mode enabled
+- **Build**: Optimized production bundle
+- **Deployment**: Static site generation compatible
+
+---
+
+## 📈 Performance
+
+- **Bundle Size**: ~65KB gzipped
+- **API Caching**: TanStack Query with 30s stale time
+- **Loading States**: Skeleton components for better UX
+- **Error Recovery**: Automatic retry with exponential backoff
+
+---
+
+## 🔒 Security
+
+- **Environment Variables**: Only `REACT_APP_*` exposed to browser
+- **API Security**: All secrets handled by backend
+- **CORS**: Backend configured for frontend domain
+- **Content Security**: No inline scripts or styles
+
+---
+
+## 📝 Learn More
+
+- [Create React App Documentation](https://facebook.github.io/create-react-app/docs/getting-started)
+- [TanStack Query Guide](https://tanstack.com/query/latest)
+- [TypeScript React Handbook](https://www.typescriptlang.org/docs/handbook/react.html)
+- [Vercel Deployment Docs](https://vercel.com/docs/concepts/deployments/overview)
