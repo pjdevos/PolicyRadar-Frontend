@@ -14,7 +14,7 @@ providers = ["node"]
   cmds = ["npm ci --omit=dev --omit=optional --prefer-offline --legacy-peer-deps"]
 
 [phases.build]
-  cmds = ["npm run build"]
+  cmds = ["CI=false npm run build"]
 
 [start]
-  cmd = "npx serve -s build -l tcp://0.0.0.0:$PORT -C"
+  cmd = "serve -s build -p $PORT"
