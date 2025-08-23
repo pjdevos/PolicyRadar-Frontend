@@ -60,6 +60,8 @@ Vercel automatically deploys from the `main` branch with optimized React builds.
 
 **Status:** ✅ **Working** - Data loading, API connectivity, all features functional
 
+**Architecture Note:** Cross-platform hosting (Vercel frontend + Railway backend) requires careful CORS configuration. All common Vercel deployment patterns are included in the backend CORS allowlist.
+
 ### ⚠️ Alternative: Railway (Under Investigation)
 
 Railway deployment is currently experiencing platform-specific issues:
