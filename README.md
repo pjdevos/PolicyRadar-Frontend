@@ -49,7 +49,7 @@ Types are generated into `src/types/api-generated.ts` and provide full type safe
 
 ## 🚀 Deployment
 
-### Primary: Vercel (Recommended)
+### ✅ Production: Vercel (Primary)
 
 Vercel automatically deploys from the `main` branch with optimized React builds.
 
@@ -58,20 +58,22 @@ Vercel automatically deploys from the `main` branch with optimized React builds.
 **Environment Variables:**
 - `REACT_APP_API_URL`: `https://policyradar-backend-production.up.railway.app/api`
 
-### Alternative: Railway
+**Status:** ✅ **Working** - Data loading, API connectivity, all features functional
 
-For manual Railway deployment:
+### ⚠️ Alternative: Railway (Under Investigation)
 
+Railway deployment is currently experiencing platform-specific issues:
+- Build process completes successfully
+- Container startup fails with connection refused errors
+- Multiple troubleshooting attempts made (nixpacks config, serve commands, port binding)
+
+**Current Status:** ⚠️ **Not Working** - Platform compatibility issues
+
+For Railway deployment setup (when issues are resolved):
 1. Go to [Railway Dashboard](https://railway.app/dashboard)
 2. Click "New Project" → "Deploy from GitHub repo"  
 3. Select `pjdevos/PolicyRadar-Frontend` repository
-4. Add environment variables:
-   ```
-   REACT_APP_API_URL=https://policyradar-backend-production.up.railway.app/api
-   REACT_APP_APP_NAME=Policy Radar
-   REACT_APP_VERSION=1.0.0
-   REACT_APP_ENVIRONMENT=production
-   ```
+4. Configuration files are already present (`railway.json`, `nixpacks.toml`)
 
 ---
 
