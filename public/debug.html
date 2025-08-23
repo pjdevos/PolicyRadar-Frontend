@@ -8,8 +8,10 @@
     
     <div id="results"></div>
     
+    <script src="env-config.js"></script>
     <script>
-        const API_BASE_URL = 'https://policyradar-backend-production.up.railway.app/api';
+        // Use environment config with fallback
+        const API_BASE_URL = window.ENV_CONFIG?.API_BASE_URL?.replace('%REACT_APP_API_URL%', 'https://policyradar-backend-production.up.railway.app/api') || 'https://policyradar-backend-production.up.railway.app/api';
         const resultsDiv = document.getElementById('results');
         
         function log(message) {

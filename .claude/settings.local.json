@@ -30,7 +30,8 @@
       "WebFetch(domain:policy-radar-frontend.vercel.app)",
       "WebFetch(domain:policyradar-backend-production.up.railway.app)",
       "WebFetch(domain:policy-radar-frontend-jt8cxxl2d-pjdevos-projects-979bae0e.vercel.app)",
-      "Bash(CI=false npm run build)"
+      "Bash(CI=false npm run build)",
+      "Bash(CI=true npm run build)"
     ],
     "deny": [],
     "ask": [],
